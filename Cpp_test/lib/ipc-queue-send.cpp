@@ -77,7 +77,6 @@ void ipcQueueSend::transfer()
 	if (total_sent_bytes == file_size)
 	{
 		
-
 		size_t is_empty = 0;
 		size_t mq_oldmsgs = 0; // store the previous value of mq_curmsgs
 		do

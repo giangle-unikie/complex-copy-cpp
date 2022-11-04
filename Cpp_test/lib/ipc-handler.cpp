@@ -5,7 +5,6 @@
 
 void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
 	this->info.mode = mode;
-	    
   	int opt;
 	info.fflag = 0;
 	info.pflag = 0;
@@ -79,6 +78,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
 		info.protocol = IPCProtocol::NONE;
 		throw std::runtime_error("ERROR: No file given, use -h for more information.");
 	}
+
   	
 }
 

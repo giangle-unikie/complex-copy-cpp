@@ -17,6 +17,7 @@ cc_test(
 cc_test(
   name = "queue-send-test",
   srcs = ["queue-send-test.cpp"],
+  linkopts = ["-lpthread"],
   data = ["//testFile"],
   deps = ["//lib:file-handler",
           "//lib:ipc-handler",

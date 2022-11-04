@@ -5,29 +5,31 @@
 #include "gtest/gtest.h"
 #include <boost/process.hpp>
 
-// TEST(QueueReceiveTest1, initFailOpen){
-//     char mode[] = {"./ipc_send"};
-//     char queueMethod[] = {"-q"};
-//     char methodName[] = {"/methodName"};
-//     char file[] = {"-f"};
-//     char fileName[] = {"fileName"};
-//     int argc = 5;
-//     char* argv[] = {mode, queueMethod, methodName, file, fileName};
-//     ipcHandler ipc;
-//     ipc.select_options(IPCMode::SEND_MODE,argc, argv);
-//     ipc_info info = ipc.get_options();
-//     ipcQueueSend mq(info);
+TEST(QueueReceiveTest1, initFailOpen){
+    optind =0;
+    char mode[] = {"./ipc_send"};
+    char queueMethod[] = {"-q"};
+    char methodName[] = {"/methodName"};
+    char file[] = {"-f"};
+    char fileName[] = {"fileName"};
+    int argc = 5;
+    char* argv[] = {mode, queueMethod, methodName, file, fileName};
+    ipcHandler ipc;
+    ipc.select_options(IPCMode::SEND_MODE,argc, argv);
+    ipc_info info = ipc.get_options();
+    ipcQueueSend mq(info);
     
-//     mqd_t mqd{};
-//     mq_attr attr{0, 10, 8192, 0};
-// 	mqd = mq_open(info.method_name,  O_RDONLY | O_NONBLOCK, 0660, &(attr));
+    mqd_t mqd{};
+    mq_attr attr{0, 10, 8192, 0};
+	mqd = mq_open(info.method_name,  O_RDONLY | O_NONBLOCK, 0660, &(attr));
 
-// 	if (mqd == -1){
-//         EXPECT_THROW(mq.init(), std::runtime_error);
-//     }
-// }
+	if (mqd == -1){
+        EXPECT_THROW(mq.init(), std::runtime_error);
+    }
+}
 
 TEST(QueueReceiveTest2, initSuccessOpen){
+    optind =0;
     char mode[] = {"./ipc_receive"};
     char queueMethod[] = {"-q"};
     char methodName[] = {"/methodName"};
@@ -50,6 +52,7 @@ TEST(QueueReceiveTest2, initSuccessOpen){
 }
 
 TEST(QueueReceiveTest3, start){
+    optind =0;
     boost::process::child c;
 
     char mode[] = {"./ipc_receive"};
