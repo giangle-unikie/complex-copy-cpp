@@ -16,7 +16,7 @@ class FileHandler
 	protected:
 		std::fstream fs{};
 		char *file_name;
-		FileMode mode{FileMode::NONE};
+		FileMode mode{};
 	public:
 		explicit FileHandler(char *fn, FileMode m) 
 			: file_name(std::move(fn)), mode(m)
