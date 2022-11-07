@@ -51,7 +51,7 @@ TEST(QueueReceiveTest2, initSuccessOpen){
     }
 }
 
-TEST(QueueReceiveTest3, start){
+TEST(QueueReceiveTest3, tranferFile){
     optind =0;
     boost::process::child c;
 
