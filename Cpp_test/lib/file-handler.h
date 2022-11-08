@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <utility>
-#include <boost/filesystem.hpp>
+#include <vector>
 
 enum class FileMode
 {

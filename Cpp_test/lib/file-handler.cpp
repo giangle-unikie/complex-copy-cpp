@@ -1,5 +1,4 @@
 #include "file-handler.h"
-#include <ctime>
 #include <iostream>
 
 FileHandler::~FileHandler()
@@ -8,15 +7,6 @@ FileHandler::~FileHandler()
 		fs.close();
 }
 
-unsigned long FileHandler::get_file_size()
-{
-	if (this->mode == FileMode::WRITE)
-	{
-		this->close_file();
-	}
-	return boost::filesystem::file_size(this->file_name);
-
-} 
 
 void FileHandler::open_file()
 {
@@ -58,3 +48,25 @@ void FileHandler::close_file()
 {
 	fs.close();
 }
+
+unsigned long FileHandler::get_file_size()
+{
+	unsigned long size {};
+	if (this->mode == FileMode::WRITE)
+	{
+		auto current_pos = this->fs.tellp();
+		this->fs.seekp(0, std::fstream::end);
+		size = this->fs.tellp();
+		this->fs.seekp(current_pos);
+	}
+	else
+	{
+		auto current_pos = this->fs.tellg();
+		this->fs.seekg(0, std::fstream::end);
+		size = this->fs.tellg();
+		this->fs.seekg(current_pos);
+	}
+
+	return size;
+
+} 
