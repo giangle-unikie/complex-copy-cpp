@@ -4,6 +4,8 @@
 #include <climits>
 #include <utility>
 #include <mqueue.h>
+#include <time.h>
+#include <vector>
 #include "ipc-common.h"
 #include "file-handler.h"
 

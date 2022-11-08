@@ -1,6 +1,7 @@
 #include "ipc-queue-send.h"
 #include <ctime>
 #include <iostream>
+#include <unistd.h>
 
 ipcQueueSend::~ipcQueueSend()
 {
@@ -13,10 +14,10 @@ void ipcQueueSend::init()
 	// remove old queue name (if any)
 	mq_unlink(this->info.method_name);
 	errno = 0; // clear errno
-	this->mqd = mq_open(this->info.method_name, O_CREAT | O_EXCL | O_WRONLY | O_NONBLOCK, 0660, &(this->attr));
+	this->mqd = mq_open(this->info.method_name, O_CREAT | O_EXCL | O_WRONLY , 0660, &(this->attr));
 
 	if (this->mqd == -1)
-		throw std::runtime_error(std::string("ERROR: ") + this->info.method_name + ": " + strerror(errno));
+		throw std::runtime_error(std::string("ERROR: open queue send name ") + this->info.method_name );
 	else
 		std::cout << this->info.method_name << " is opened." << std::endl;
 
@@ -25,6 +26,7 @@ void ipcQueueSend::init()
 
 void ipcQueueSend::transfer()
 {
+	struct timespec	ts;
 	std::cout << "transfer\n";
 	long mq_send_return_value{0};
 	long read_bytes{0};
@@ -36,43 +38,35 @@ void ipcQueueSend::transfer()
 	}
 		
 	std::cout << "Sending..." << std::endl;
-	while (!this->fs.eof())
+	std::cout << "file_size: " << file_size << std::endl;
+	
+	while (total_sent_bytes < file_size)
 	{
+		clock_gettime(CLOCK_REALTIME, &ts);
+		ts.tv_sec += 7; /* set timeout for 7 seconds */
+		ts.tv_nsec = 0; /* Invalid */
+		
 		this->read_file(buffer, this->attr.mq_msgsize);
 		read_bytes = this->fs.gcount();
-
+		
 		if (read_bytes > 0)
 		{
-			errno = 0; // clear errno
-			mq_send_return_value = mq_send(this->mqd, buffer.data(), read_bytes,
-										   this->priority);
+			mq_send_return_value = mq_timedsend(this->mqd, buffer.data(), read_bytes,
+												   this->priority, &ts);
+			std::cout << "mq send: " << mq_send_return_value << std::endl;
 			if (mq_send_return_value == 0)
 			{
 				total_sent_bytes += read_bytes;
 				
-			}
-			else if (mq_send_return_value == -1 && errno == EAGAIN)
+			}else
 			{
-				while (errno == EAGAIN )
-				{
-					errno = 0; // clear errno
-					mq_send_return_value = mq_send(this->mqd, buffer.data(), read_bytes,
-												   this->priority);
-					if (mq_send_return_value == 0)
-					{
-						total_sent_bytes += read_bytes;
-						
-					}
-				}
-				if (errno == EAGAIN )
-					throw std::runtime_error("ERROR: Timeout. \n");
+				throw std::runtime_error(std::string("ERROR: mq_send(): "));
 			}
-			else
-				throw std::runtime_error(std::string("ERROR: mq_send(): ") + strerror(errno));
+				
 		}
 	}
 
-	std::cout << "Sent data: " << total_sent_bytes << std::endl;
+	std::cout << "Sent data size: " << total_sent_bytes << std::endl;
 
 	if (total_sent_bytes == file_size)
 	{

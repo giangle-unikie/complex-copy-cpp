@@ -3,6 +3,8 @@
 
 #include <mqueue.h>
 #include <climits> 
+#include <time.h>
+#include <vector>
 #include "ipc-common.h"
 #include "file-handler.h"
 
