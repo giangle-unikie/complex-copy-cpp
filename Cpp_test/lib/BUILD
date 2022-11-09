@@ -21,7 +21,6 @@ cc_library(
     name = "file-handler",
     srcs = ["file-handler.cpp"],
     hdrs = ["file-handler.h"],
-    linkopts = ["-lboost_filesystem"],
     visibility = ["//visibility:public"],
     deps = [],
 )

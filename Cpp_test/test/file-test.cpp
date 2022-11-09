@@ -24,6 +24,7 @@ TEST(FileTestCases, readFile){
 }
 
 TEST(FileTestCases, writeFile){
+	optind =0;
     std::streamsize stringSize{8};
 	char file_name[] = "writeTest";
 

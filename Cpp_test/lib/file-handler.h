@@ -3,8 +3,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <sys/stat.h>
 #include <utility>
 #include <vector>
+
 
 enum class FileMode
 {
@@ -19,7 +21,7 @@ class FileHandler
 		FileMode mode{};
 	public:
 		explicit FileHandler(char *fn, FileMode m) 
-			: file_name(std::move(fn)), mode(m)
+			: file_name(fn), mode(m)
 		{};
 		~FileHandler();
 		unsigned long get_file_size();
@@ -27,6 +29,7 @@ class FileHandler
 		void open_file();
 		void read_file(std::vector<char> &data, std::streamsize &data_size);
 		void write_file(std::vector<char> &data, std::streamsize &data_size);
+		
 };
 
 

@@ -1,6 +1,7 @@
 #include "file-handler.h"
 #include <iostream>
 
+
 FileHandler::~FileHandler()
 {
 	if (fs.is_open())
@@ -24,8 +25,9 @@ void FileHandler::write_file(std::vector<char> &data, std::streamsize &data_size
 	{
 		this->fs.write(data.data(), data_size);
 		// check read/writing error on i/o operation
-		if (this->fs.bad()) 
-			throw std::runtime_error("ERROR: ostream::write().");
+		if (!this->fs.eof() && (this->fs.bad() || this->fs.fail())) {
+			throw std::runtime_error("ERROR: istream::read().");
+		}
 	}
 	else
 		throw std::runtime_error("ERROR: write_file() in a wrong mode.");
@@ -37,8 +39,10 @@ void FileHandler::read_file(std::vector<char> &data, std::streamsize &data_size)
 	{
 		this->fs.read(data.data(), data_size);
 		// check read/writing error on i/o operation
-		if (this->fs.bad()) 
+		if (!this->fs.eof() && (this->fs.bad() || this->fs.fail())) {
 			throw std::runtime_error("ERROR: istream::read().");
+		}
+		
 	}
 	else
 		throw std::runtime_error("ERROR: read_file() in a wrong mode.");
@@ -49,24 +53,18 @@ void FileHandler::close_file()
 	fs.close();
 }
 
-unsigned long FileHandler::get_file_size()
+size_t FileHandler::get_file_size()
 {
-	unsigned long size {};
-	if (this->mode == FileMode::WRITE)
+	struct stat st;
+	if(this->mode == FileMode::WRITE)
 	{
-		auto current_pos = this->fs.tellp();
-		this->fs.seekp(0, std::fstream::end);
-		size = this->fs.tellp();
-		this->fs.seekp(current_pos);
-	}
-	else
-	{
-		auto current_pos = this->fs.tellg();
-		this->fs.seekg(0, std::fstream::end);
-		size = this->fs.tellg();
-		this->fs.seekg(current_pos);
+		this->close_file();
 	}
 
-	return size;
+    if(stat(this->file_name, &st) < 0) {
+		throw std::runtime_error("ERROR: get_file_size().");	
+    }
+
+	return st.st_size;
 
 } 
