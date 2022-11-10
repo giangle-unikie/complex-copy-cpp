@@ -55,16 +55,16 @@ void FileHandler::close_file()
 
 size_t FileHandler::get_file_size()
 {
-	struct stat st;
+	struct stat64 myst;
 	if(this->mode == FileMode::WRITE)
 	{
 		this->close_file();
 	}
 
-    if(stat(this->file_name, &st) < 0) {
+    if(stat64(this->file_name, &myst) < 0) {
 		throw std::runtime_error("ERROR: get_file_size().");	
     }
 
-	return st.st_size;
+	return myst.st_size;
 
 } 

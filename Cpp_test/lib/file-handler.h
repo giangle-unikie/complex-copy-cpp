@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include <utility>
 #include <vector>
+#include <stdio.h>
+#include <unistd.h>
+#include <inttypes.h>
 
 
 enum class FileMode
