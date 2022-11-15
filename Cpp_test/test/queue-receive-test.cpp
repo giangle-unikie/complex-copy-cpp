@@ -1,6 +1,6 @@
 #include "lib/file-handler.h"
 #include "lib/ipc-handler.h"
-#include "lib/ipc-common.h"
+#include "lib/ipc.h"
 #include "lib/ipc-queue-receive.h"
 #include "gtest/gtest.h"
 #include <boost/process.hpp>

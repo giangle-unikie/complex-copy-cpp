@@ -1,6 +1,6 @@
 #include <vector>
 #include "lib/ipc-handler.h"
-#include "lib/ipc-common.h"
+#include "lib/ipc.h"
 #include "gtest/gtest.h"
 
 

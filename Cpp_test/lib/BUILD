@@ -1,6 +1,6 @@
 cc_library(
-    name = "ipc-common",
-    hdrs = ["ipc-common.h"],
+    name = "ipc",
+    hdrs = ["ipc.h"],
     visibility = ["//visibility:public"],
     deps = [],
 )
@@ -11,7 +11,7 @@ cc_library(
     hdrs = ["ipc-handler.h"],
     visibility = ["//visibility:public"],
     deps = [
-        "//lib:ipc-common",
+        "//lib:ipc",
         "//lib:ipc-queue-receive",
         "//lib:ipc-queue-send",
     ],
@@ -21,6 +21,7 @@ cc_library(
     name = "file-handler",
     srcs = ["file-handler.cpp"],
     hdrs = ["file-handler.h"],
+    linkopts = ["-lboost_filesystem"],
     visibility = ["//visibility:public"],
     deps = [],
 )
@@ -33,7 +34,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//lib:file-handler",
-        "//lib:ipc-common",
+        "//lib:ipc",
     ],
 )
 
@@ -45,8 +46,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//lib:file-handler",
-        "//lib:ipc-common",
+        "//lib:ipc",
        
     ],
 )
+
+
 

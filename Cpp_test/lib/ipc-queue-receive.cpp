@@ -17,12 +17,13 @@ void ipcQueueReceive::init()
 		this->mqd = mq_open(this->info.method_name, O_RDONLY, 0660, &(this->attr));
 	} while (this->mqd == -1);
 
-	if (this->mqd == -1)
+	if (this->mqd == -1){
 		throw std::runtime_error("ERROR: Fail to open receive queue. ");
-	else
+	}
+	else{
 		std::cout << "/dev/mqueue" << this->info.method_name << " is opened." << std::endl;
-
-	this->open_file();
+	}
+	this->file_handler.open_file();
 }
 
 void ipcQueueReceive::transfer()
@@ -45,9 +46,9 @@ void ipcQueueReceive::transfer()
 		{
 			throw std::runtime_error("ERROR: mq_timedreceive failed to receive file. ");
 		}else if (read_bytes > 0) {
-			this->write_file(buffer, read_bytes);
+			this->file_handler.write_file(buffer, read_bytes);
 		}
 	}
 
-	std::cout << "Received data size: " << this->get_file_size() << " byte(s)" << std::endl;
+	std::cout << "Received data size: " << this->file_handler.get_file_size() << " byte(s)" << std::endl;
 }
