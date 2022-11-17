@@ -47,8 +47,8 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
 						"-h <--help print out containing description of all supported command-line arguments>\n");
 		}
 	}
-  if (fflag == true) {
-		if ( pflag == false && qflag == false && sflag == false) {
+  if (fflag) {
+		if ( !pflag && !qflag && !sflag) {
 			std::cout << "name of file is used: " << info.file_name << std::endl;
 			std::cout << "Select one IPC method!e.g \n"
 					"./ipcSend -q /<queue_name> -f <file_name>\n"
@@ -56,12 +56,12 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
 					"./ipcSend -s <shared_name> -f <file_name>\n";
 
 		} else {
-			if(pflag == true){
+			if(pflag){
 				std::cout << "Pipe is used, pipe name is "<< info.method_name << std::endl;
 				std::cout << "File name: " << info.file_name << std::endl;
 				info.protocol = IPCProtocol::PIPE;	
 
-			} else if (qflag == true) {				
+			} else if (qflag) {				
 				std::cout << "queue is used, queue name is "<< info.method_name << std::endl;
 				std::cout << "File name: " << info.file_name << std::endl;
 				info.protocol = IPCProtocol::QUEUE;
@@ -74,7 +74,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
 			}
 		}	
 
-	}else if (hflag == false && (pflag == false && qflag == false && sflag == false && fflag == false)) {
+	}else if (!hflag && (!pflag && !qflag && !sflag && !fflag)) {
 		info.protocol = IPCProtocol::NONE;
 		throw std::runtime_error("ERROR: No file given, use -h for more information.");
 	}  	
@@ -120,7 +120,6 @@ IPCProtocol ipcHandler::start() const{
 		if (info.protocol == IPCProtocol::PIPE )
 		{
 			throw std::runtime_error ("Pipe has not been modified yet!!!" );
-
 		}
 		if (info.protocol == IPCProtocol::SHARE)
 		{

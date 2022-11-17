@@ -74,9 +74,9 @@ size_t FileHandler::get_file_size()
 
 
 long FileHandler::get_read_bytes(){
-	if(!fs)
+	if(!this->fs.eof() && (this->fs.bad() || this->fs.fail()))
 	{
-		return fs.gcount();
+		throw std::runtime_error("ERROR: get_read_bytes().");
 	}
-	throw std::runtime_error("ERROR: get_read_bytes().");
+	return fs.gcount();
 }
