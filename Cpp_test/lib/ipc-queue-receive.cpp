@@ -34,7 +34,7 @@ void ipcQueueReceive::transfer()
 	std::cout << "Waiting for new file..." << std::endl;
 	errno = 0; // clear error number
 	
-	while (read_bytes != -1)
+	do
 	{
 		clock_gettime(CLOCK_REALTIME, &ts);
 		ts.tv_sec += 7; /* set timeout for 7 seconds */
@@ -48,7 +48,7 @@ void ipcQueueReceive::transfer()
 		}else if (read_bytes > 0) {
 			this->file_handler.write_file(buffer, read_bytes);
 		}
-	}
-
+	}while (read_bytes > 0);
+	
 	std::cout << "Received data size: " << this->file_handler.get_file_size() << " byte(s)" << std::endl;
 }

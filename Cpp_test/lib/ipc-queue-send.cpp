@@ -28,19 +28,19 @@ void ipcQueueSend::init()
 void ipcQueueSend::transfer()
 {
 	
+	
 	struct timespec	ts;
 	std::cout << "transfer\n";
 	long mq_send_return_value{0};
 	long read_bytes{0};
 	std::vector<char> buffer(this->attr.mq_msgsize);
-	unsigned total_sent_bytes{0};
-	unsigned long file_size = this->file_handler.get_file_size();
+	unsigned long long total_sent_bytes{0};
+	unsigned long long file_size = this->file_handler.get_file_size();
 	if (file_size == 0){
 		throw std::runtime_error("ERROR: File size = 0.");
 	}
 		
 	std::cout << "Sending..." << std::endl;
-	std::cout << "file_size: " << file_size << std::endl;
 	
 	while (total_sent_bytes < file_size)
 	{
@@ -50,14 +50,12 @@ void ipcQueueSend::transfer()
 		
 		this->file_handler.read_file(buffer, this->attr.mq_msgsize);
 		read_bytes = this->file_handler.get_read_bytes();
-		std::cout << "read bytes: " << read_bytes << std::endl;
+		
 		
 		if (read_bytes > 0)
 		{
 			mq_send_return_value = mq_timedsend(this->mqd, buffer.data(), read_bytes,
 												   this->priority, &ts);
-			std::cout << "mq send: " << mq_send_return_value << std::endl;
-			std::cout << "read bytes: " << read_bytes << std::endl;
 			if (mq_send_return_value == 0)
 			{
 				total_sent_bytes += read_bytes;
@@ -74,24 +72,18 @@ void ipcQueueSend::transfer()
 
 	if (total_sent_bytes == file_size)
 	{
-		
 		size_t is_empty = 0;
-		size_t mq_oldmsgs = 0; // store the previous value of mq_curmsgs
 		do
 		{
 			mq_getattr(this->mqd, &(this->attr));
 			is_empty = this->attr.mq_curmsgs;
-			mq_oldmsgs = is_empty;
 		} while (is_empty != 0);
 
-		if (is_empty != 0)
-			throw std::runtime_error("ERROR: Timeout. \n");
-		else
-			std::cout << "Client picked it up." << std::endl;
+		std::cout << "Client picked it up." << std::endl;
 	}
 	else
 	{
-		throw std::runtime_error("ERROR: Connection lost. The transfer is interrupted.");
+		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.");
 	}
 }
 
