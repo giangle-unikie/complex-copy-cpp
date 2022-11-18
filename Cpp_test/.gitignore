@@ -2,3 +2,4 @@
 /bazel-*
 /output
 /build
+/out
