@@ -16,6 +16,8 @@
 #include <getopt.h>
 #include "ipc-queue-receive.h"
 #include "ipc-queue-send.h"
+#include "ipc-pipe-receive.h"
+#include "ipc-pipe-send.h"
 
 class ipcHandler
 {   

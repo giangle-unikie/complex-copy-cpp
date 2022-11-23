@@ -21,8 +21,10 @@ bazel test //test:argument-test
 bazel test //test:file-test
 bazel test //test:queue-receive-test
 bazel test //test:queue-send-test
+bazel test //test:pipe-test
 
 cp bazel-testlogs/test/argument-test/test.log build/argument-test.log
 cp bazel-testlogs/test/file-test/test.log build/file-test.log
 cp bazel-testlogs/test/queue-receive-test/test.log build/queue-receive-test.log
 cp bazel-testlogs/test/queue-send-test/test.log build/queue-send-test.log
+cp bazel-testlogs/test/pipe-test/test.log build/pipe-test.log
