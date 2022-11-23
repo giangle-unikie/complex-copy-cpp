@@ -1,0 +1,2 @@
+# C++ version
+BAZEL_CXXOPTS="-std=c++14"

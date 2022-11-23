@@ -1,0 +1,107 @@
+@startuml
+class IPC
+{
+	# ipc_info info{}
+	# FileHandler file_handler{}
+	
+	+ explicit IPC(ipc_info options) : info(std::move(options)){}
+	+ virtual void init() = 0
+	+ virtual void transfer() = 0
+    + ~IPC() = default
+}
+
+class ipcHandler
+{
+	- ipc_info info{}
+
+	+ void select_options(IPCMode mode, int argc, char *argv[])
+	+ const ipc_info &get_options() const
+	+ IPCProtocol start() const
+    +  ~ipcHandler() = default
+}
+
+class FileHandler
+{
+	# std::fstream fs{}
+	# char *file_name
+	# FileMode mode {FileMode::NONE}
+
+	+ explicit FileHandler(char *fn, FileMode m) : file_name(std::move(fn)), mode(m){}
+	+ FileHandler() = default
+	+ ~FileHandler()
+	+ unsigned long get_file_size()
+	+ void open_file()
+	+ void read_file(std::vector<char> &data, std::streamsize &data_size)
+	+ void write_file(std::vector<char> &data, std::streamsize &data_size)
+	+ long get_read_bytes()
+	+ void setup_file(char *fn, FileMode m)
+}
+
+class ipcQueueReceive
+{
+    # mqd_t mqd{}
+    # struct mq_attr attr{0, 10, 8192, 0}
+    # unsigned mq_priority{MQ_PRIO_MAX - 1}
+
+	+ explicit ipcQueueReceive(const ipc_info &info): IPC(info){}
+	+ ~ipcQueueReceive()
+	+ void init() override
+	+ void transfer() override
+}
+
+class ipcQueueSend
+{
+	# mqd_t mqd{}
+	# mq_attr attr{0, 10, 8192, 0}
+	# unsigned priority{MQ_PRIO_MAX - 1}
+
+	+ explicit ipcQueueSend(const ipc_info &info): IPC(info){}
+	+ ~ipcQueueSend()
+	+ void init() override
+	+ void transfer() override
+}
+
+
+enum IPCProtocol<<enumeration>>
+{
+	+ NONE
+	+ QUEUE
+	+ HELP
+	+ PIPE
+    + SHARE
+}
+
+enum IPCMode<<enumeration>>
+{
+	+ SEND_MODE
+	+ RECEIVE_MODE
+}
+
+class ipc_info << (S,lightblue) struct>>
+{
+	+ IPCMode mode{}
+	+ IPCProtocol protocol{}
+	+ char *file_name
+	+ char *method_name
+}
+
+class ipc_info << (S,lightblue) struct>>
+{
+	+ long number_of_msg{}
+	+ long read_bytes{}
+	+ long sent_bytes{}
+	+ unsigned long file_size{}
+	+ unsigned long total_sent_bytes{}
+}
+
+
+
+
+IPC <|-- ipcQueueSend
+IPC <|-- ipcQueueReceive
+
+IPCProtocol -- ipc_info
+ipc_info -- IPC
+ipc_info -- IPCMode
+
+@enduml
