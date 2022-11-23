@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	}
 	catch (const std::exception &e)
 	{
-		std::rethrow_exception(std::current_exception());
+		std::cerr << e.what();
 	}
 
 	return 0;
