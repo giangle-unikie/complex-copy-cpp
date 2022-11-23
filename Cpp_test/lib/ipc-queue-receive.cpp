@@ -10,11 +10,17 @@ ipcQueueReceive::~ipcQueueReceive()
 
 void ipcQueueReceive::init()
 {
-
+	this->file_handler.setup_file(info.file_name, FileMode::WRITE);
 	std::cout << "Waiting for sender" << std::endl;
 	do
 	{
 		this->mqd = mq_open(this->info.method_name, O_RDONLY, 0660, &(this->attr));
+		int i = 0;
+		i++;
+		if (i == 10)
+		{
+			throw std::runtime_error("ERROR: Fail to open receive queue.");
+		}
 	} while (this->mqd == -1);
 
 	if (this->mqd == -1){

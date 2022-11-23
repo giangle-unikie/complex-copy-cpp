@@ -14,7 +14,6 @@
 #include <limits.h>
 #include <errno.h>
 #include <getopt.h>
-#include "ipc.h"
 #include "ipc-queue-receive.h"
 #include "ipc-queue-send.h"
 

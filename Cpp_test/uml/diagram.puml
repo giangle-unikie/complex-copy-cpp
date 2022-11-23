@@ -2,6 +2,7 @@
 class IPC
 {
 	# ipc_info info{}
+	# FileHandler file_handler{}
 	
 	+ explicit IPC(ipc_info options) : info(std::move(options)){}
 	+ virtual void init() = 0
@@ -26,12 +27,14 @@ class FileHandler
 	# FileMode mode {FileMode::NONE}
 
 	+ explicit FileHandler(char *fn, FileMode m) : file_name(std::move(fn)), mode(m){}
+	+ FileHandler() = default
 	+ ~FileHandler()
 	+ unsigned long get_file_size()
 	+ void open_file()
 	+ void read_file(std::vector<char> &data, std::streamsize &data_size)
 	+ void write_file(std::vector<char> &data, std::streamsize &data_size)
 	+ long get_read_bytes()
+	+ void setup_file(char *fn, FileMode m)
 }
 
 class ipcQueueReceive
@@ -39,9 +42,8 @@ class ipcQueueReceive
     # mqd_t mqd{}
     # struct mq_attr attr{0, 10, 8192, 0}
     # unsigned mq_priority{MQ_PRIO_MAX - 1}
-	# FileHandler file_handler
 
-	+ explicit ipcQueueReceive(const ipc_info &info): IPC(info),FileHandler(info.file_name, FileMode::WRITE){}
+	+ explicit ipcQueueReceive(const ipc_info &info): IPC(info){}
 	+ ~ipcQueueReceive()
 	+ void init() override
 	+ void transfer() override
@@ -52,9 +54,8 @@ class ipcQueueSend
 	# mqd_t mqd{}
 	# mq_attr attr{0, 10, 8192, 0}
 	# unsigned priority{MQ_PRIO_MAX - 1}
-	# FileHandler file_handler
 
-	+ explicit ipcQueueSend(const ipc_info &info): IPC(info),FileHandler(info.file_name, FileMode::READ){}
+	+ explicit ipcQueueSend(const ipc_info &info): IPC(info){}
 	+ ~ipcQueueSend()
 	+ void init() override
 	+ void transfer() override

@@ -11,6 +11,7 @@ ipcQueueSend::~ipcQueueSend()
 
 void ipcQueueSend::init()
 {
+	this->file_handler.setup_file(info.file_name, FileMode::READ);
 	// remove old queue name (if any)
 	mq_unlink(this->info.method_name);
 	errno = 0; // clear errno
@@ -27,8 +28,6 @@ void ipcQueueSend::init()
 
 void ipcQueueSend::transfer()
 {
-	
-	
 	struct timespec	ts;
 	std::cout << "transfer\n";
 	long mq_send_return_value{0};

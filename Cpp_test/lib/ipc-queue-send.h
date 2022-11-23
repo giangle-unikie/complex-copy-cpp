@@ -6,7 +6,6 @@
 #include <time.h>
 #include <vector>
 #include "ipc.h"
-#include "file-handler.h"
 
 class ipcQueueSend : public IPC
 {
@@ -14,12 +13,10 @@ class ipcQueueSend : public IPC
 		mqd_t mqd{};
 		mq_attr attr{0, 10, 8192, 0};
 		unsigned priority{MQ_PRIO_MAX - 1};
-		FileHandler file_handler;
+		
 	public:
 		explicit ipcQueueSend(const ipc_info &info)
-			: IPC(info),
-			  file_handler(info.file_name, FileMode::READ)
-		{};
+			: IPC(info){};
 		~ipcQueueSend();
 		void init() override;
 		void transfer() override;

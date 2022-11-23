@@ -80,3 +80,14 @@ long FileHandler::get_read_bytes(){
 	}
 	return fs.gcount();
 }
+
+void FileHandler::setup_file(char *fn, FileMode m)
+{
+	if (fn == NULL || m == FileMode::NONE)
+	{
+		throw std::runtime_error("ERROR: setup_file().");
+	}
+
+	this->file_name = fn;
+	this->mode_ = m;
+}

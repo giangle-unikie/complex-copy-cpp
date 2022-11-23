@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <utility>
+#include "file-handler.h"
 
 enum class IPCProtocol
 {
@@ -28,6 +29,7 @@ class IPC
 {   
     protected:
         ipc_info info{};
+		FileHandler file_handler{};
 
 	public:
 
