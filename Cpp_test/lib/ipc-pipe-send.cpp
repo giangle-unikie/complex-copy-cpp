@@ -21,7 +21,7 @@ void IPCPipeSend::init()
     }
 		
 	// open the pipe
-	this->pd = open(this->info.method_name, O_RDWR | O_NONBLOCK);
+	this->pd = open(this->info.method_name, O_WRONLY);
 	if (this->pd == -1){
 		throw std::runtime_error(std::string("ERROR: open pipe send name ") + this->info.method_name );
 	}
@@ -44,7 +44,7 @@ void IPCPipeSend::transfer()
 		
 	std::cout << "Sending..." << std::endl;
     sleep(3);
-	while (total_sent_bytes < file_size)
+	while (1)
 	{
 		this->file_handler.read_file(buffer, this->p_msgsize);
 		
@@ -53,7 +53,7 @@ void IPCPipeSend::transfer()
 		if (read_bytes > 0)
 		{
 			sent_bytes = write(this->pd, buffer.data(), read_bytes);
-           
+
 			if (sent_bytes == read_bytes)
 			{
 				total_sent_bytes += sent_bytes;

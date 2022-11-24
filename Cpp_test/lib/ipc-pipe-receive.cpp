@@ -14,7 +14,7 @@ void IPCPipeReceive::init()
 	
 	do
 	{
-		this->pd = open(this->info.method_name, O_RDONLY | O_NONBLOCK);
+		this->pd = open(this->info.method_name, O_RDONLY );
 		sleep(1);
 		int i = 0;
 		i++;
