@@ -10,7 +10,11 @@ void IPCPipeSend::init()
 {
 	this->file_handler.setup_file(info.file_name, FileMode::READ);
 	// remove old pipe (if any)
-	remove(this->info.method_name);
+	bool remove_old_pipe = remove(this->info.method_name);
+	
+	if(!remove_old_pipe){
+		throw std::runtime_error("ERROR: Fail to remove old pipe.");
+	}
 	// create a fifo
 	if (mkfifo(this->info.method_name, 0660) != 0){
         throw std::runtime_error(std::string("ERROR: create pipe with send name ") + this->info.method_name );
@@ -45,11 +49,11 @@ void IPCPipeSend::transfer()
 		this->file_handler.read_file(buffer, this->p_msgsize);
 		
 		read_bytes = this->file_handler.get_read_bytes();
+		
 		if (read_bytes > 0)
 		{
 			sent_bytes = write(this->pd, buffer.data(), read_bytes);
-            std::cout << "Sent byte: " << sent_bytes << " byte(s)." << std::endl;
-            std::cout << "Read byte: " << read_bytes << " byte(s)." << std::endl;
+           
 			if (sent_bytes == read_bytes)
 			{
 				total_sent_bytes += sent_bytes;
@@ -58,6 +62,8 @@ void IPCPipeSend::transfer()
                 throw std::runtime_error(std::string("ERROR: write() while send in pipe"));
             }
 				
+		} else if (read_bytes == 0){
+			break;
 		}
 	}
 
