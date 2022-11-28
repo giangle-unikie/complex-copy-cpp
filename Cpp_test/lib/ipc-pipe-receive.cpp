@@ -11,21 +11,14 @@ void IPCPipeReceive::init()
 	this->file_handler.setup_file(info.file_name, FileMode::WRITE);
 	std::cout << "Waiting for sender... " << std::endl;
 
-	
 	do
 	{
-		this->pd = open(this->info.method_name, O_RDONLY );
-		sleep(1);
-		int i = 0;
-		i++;
-		if (i == 5)
-		{
-			throw std::runtime_error("ERROR: Fail to open receive pipe.");
-		}
+		this->pd = open(this->info.method_name, O_RDONLY);
+		
 	} while (this->pd == -1);
-	
-	std::cout << this->info.method_name << " is opened." << std::endl;	
-	
+
+	std::cout << this->info.method_name << " is opened." << std::endl;
+
 	this->file_handler.open_file();
 }
 
@@ -35,10 +28,11 @@ void IPCPipeReceive::transfer()
 	unsigned long long total_received_bytes{0};
 	std::vector<char> buffer(this->p_msgsize);
 	std::cout << "Receiving..." << std::endl;
-	while (1)
+	while (true)
 	{
 		read_bytes = read(this->pd, buffer.data(), this->p_msgsize);
-		if (read_bytes == 0){
+		if (read_bytes == 0)
+		{
 			break;
 		}
 
@@ -49,6 +43,5 @@ void IPCPipeReceive::transfer()
 		}
 	}
 
-	std::cout << "Received data size: "  << total_received_bytes << " byte(s)." << std::endl;
-
+	std::cout << "Received data size: " << total_received_bytes << " byte(s)." << std::endl;
 }
