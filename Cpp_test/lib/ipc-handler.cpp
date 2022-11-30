@@ -97,7 +97,9 @@ IPCProtocol ipcHandler::start() const{
 		}
 		if (info.protocol == IPCProtocol::PIPE)
 		{
-			throw std::runtime_error ("Pipe has not been modified yet!!!" );
+			IPCPipeReceive pipe(this->info);
+			pipe.init();
+			pipe.transfer();
 
 		}
 		if (info.protocol == IPCProtocol::SHARE)
@@ -119,7 +121,10 @@ IPCProtocol ipcHandler::start() const{
 		}
 		if (info.protocol == IPCProtocol::PIPE )
 		{
-			throw std::runtime_error ("Pipe has not been modified yet!!!" );
+			IPCPipeSend pipe(this->info);
+			pipe.init();
+			pipe.transfer();
+
 		}
 		if (info.protocol == IPCProtocol::SHARE)
 		{

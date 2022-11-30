@@ -35,3 +35,15 @@ cc_test(
           "//lib:ipc-queue-receive",
           "@com_google_googletest//:gtest_main"],
 )
+
+cc_test(
+  name = "pipe-test",
+  srcs = ["pipe-test.cpp"],
+  linkopts = ["-lpthread"],
+  data = ["//testFile"],
+  deps = ["//lib:file-handler",
+          "//lib:ipc-handler",
+          "//lib:ipc-pipe-send",
+          "//lib:ipc-pipe-receive",
+          "@com_google_googletest//:gtest_main"],
+)

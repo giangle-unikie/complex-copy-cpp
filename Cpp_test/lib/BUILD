@@ -2,7 +2,9 @@ cc_library(
     name = "ipc",
     hdrs = ["ipc.h"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:file-handler"],
+    deps = [
+        "//lib:file-handler"
+    ],
 )
 
 cc_library(
@@ -10,7 +12,12 @@ cc_library(
     srcs = ["ipc-handler.cpp"],
     hdrs = ["ipc-handler.h"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:ipc-queue-receive", "//lib:ipc-queue-send"],
+    deps = [
+        "//lib:ipc-queue-receive", 
+        "//lib:ipc-queue-send",
+        "//lib:ipc-pipe-receive", 
+        "//lib:ipc-pipe-send",
+    ],
 )
 
 cc_library(
@@ -28,7 +35,9 @@ cc_library(
     hdrs = ["ipc-queue-send.h"],
     linkopts = ["-lrt"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:ipc",],
+    deps = [
+        "//lib:ipc",
+    ],
 )
 
 cc_library(
@@ -37,8 +46,29 @@ cc_library(
     hdrs = ["ipc-queue-receive.h"],
     linkopts = ["-lrt"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:ipc"],
+    deps = [
+        "//lib:ipc"
+    ],
 )
 
+cc_library(
+    name = "ipc-pipe-send",
+    srcs = ["ipc-pipe-send.cpp"],
+    hdrs = ["ipc-pipe-send.h"],
+    linkopts = ["-lrt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lib:ipc",
+    ],
+)
 
-
+cc_library(
+    name = "ipc-pipe-receive",
+    srcs = ["ipc-pipe-receive.cpp"],
+    hdrs = ["ipc-pipe-receive.h"],
+    linkopts = ["-lrt"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lib:ipc",
+    ],
+)

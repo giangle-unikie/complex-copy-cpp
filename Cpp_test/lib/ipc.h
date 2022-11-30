@@ -33,7 +33,7 @@ class IPC
 
 	public:
 
-        explicit IPC(ipc_info options) : info(std::move(options))
+        explicit IPC(ipc_info options) : info(options)
 		{};
 		virtual void init() = 0;
 		virtual void transfer() = 0;
