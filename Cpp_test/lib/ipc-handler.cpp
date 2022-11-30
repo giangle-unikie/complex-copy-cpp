@@ -104,7 +104,9 @@ IPCProtocol ipcHandler::start() const{
 		}
 		if (info.protocol == IPCProtocol::SHARE)
 		{
-			throw std::runtime_error ("Shm has not been modified yet!!!" );
+			IPCShmReceive shm(this->info);
+			shm.init();
+			shm.transfer();
 
 		}
 		if (info.protocol == IPCProtocol::NONE){
@@ -128,7 +130,9 @@ IPCProtocol ipcHandler::start() const{
 		}
 		if (info.protocol == IPCProtocol::SHARE)
 		{
-			throw std::runtime_error ("Shm has not been modified yet!!!" );
+			IPCShmSend shm(this->info);
+			shm.init();
+			shm.transfer();
 
 		}
 		if (info.protocol == IPCProtocol::NONE){

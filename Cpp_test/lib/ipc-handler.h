@@ -14,18 +14,20 @@
 #include <limits.h>
 #include <errno.h>
 #include <getopt.h>
+#include "ipc.h"
 #include "ipc-queue-receive.h"
 #include "ipc-queue-send.h"
 #include "ipc-pipe-receive.h"
 #include "ipc-pipe-send.h"
+#include "ipc-shm-receive.h"
+#include "ipc-shm-send.h"
+
 
 class ipcHandler
 {   
     private:
         ipc_info info{};
-      
-	public:
-		
+	public:	
         void select_options(IPCMode mode, int argc, char *argv[]);
 		const ipc_info &get_options() const;
         IPCProtocol start() const;

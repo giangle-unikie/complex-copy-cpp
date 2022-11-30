@@ -47,3 +47,16 @@ cc_test(
           "//lib:ipc-pipe-receive",
           "@com_google_googletest//:gtest_main"],
 )
+
+cc_test(
+  name = "shm-test",
+  srcs = ["shm-test.cpp"],
+  linkopts = ["-lpthread"],
+  data = ["//testFile"],
+  deps = ["//lib:file-handler",
+          "//lib:ipc-handler",
+          "//lib:ipc-shm",
+          "//lib:ipc-shm-send",
+          "//lib:ipc-shm-receive",
+          "@com_google_googletest//:gtest_main"],
+)

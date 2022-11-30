@@ -25,13 +25,15 @@ class FileHandler
 		explicit FileHandler(char *fn, FileMode m) 
 			: file_name(fn), mode_(m)
 		{};
-		FileHandler() = default;
+		explicit FileHandler() = default;
 		~FileHandler();
 		unsigned long get_file_size();
 		void close_file();
 		void open_file();
 		void read_file(std::vector<char> &data, std::streamsize &data_size);
 		void write_file(std::vector<char> &data, std::streamsize &data_size);
+		void read_file_shm(char* data, std::streamsize &data_size);
+		void write_file_shm(char* data, std::streamsize &data_size);
 		long get_read_bytes();
 		void setup_file(char *fn, FileMode m);
 };
