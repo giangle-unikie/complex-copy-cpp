@@ -60,19 +60,16 @@ void IPCShmReceive::transfer()
 
 void IPCShmReceive::map_shm()
 {
-	for (unsigned tries = 0;;)
-	{
-		this->shm_ptr = (ipc_shm_header_t *)mmap64(NULL, this->shm_size_in_bytes,
+	this->shm_ptr = (ipc_shm_header_t *)mmap64(NULL, this->shm_size_in_bytes,
 												   PROT_READ | PROT_WRITE, MAP_SHARED,
 												   this->shmd, 0);
-		if (this->shm_ptr != MAP_FAILED)
-		{
-			break;
-		}
-
-		++tries;
-		sleep(1);
+	if ((static_cast<void*>(this->shm_ptr)) == MAP_FAILED)
+	{
+		throw std::runtime_error("ERROR: mmap64().");
 	}
+
+	sleep(1);
+	
 }
 
 void IPCShmReceive::open_shm()
