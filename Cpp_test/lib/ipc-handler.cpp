@@ -21,7 +21,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
 				std::cout << "<HELP>\n"
 					"-q /<queue_name>, use queue as IPC method\n"
 					"-p <pipe_name>, uses pipes as IPC method\n"
-					"-s <buffer size in kB>, uses shared memory as IPC method\n"
+					"-s <shared_name> uses shared memory as IPC method\n"
 					"-f <filename>, file used to read/write data\n"
 					"</HELP>\n";
 			break;

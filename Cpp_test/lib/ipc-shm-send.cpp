@@ -1,4 +1,6 @@
 #include "ipc-shm-send.h"
+#include <iostream>
+#include <cassert>
 
 IPCShmSend::~IPCShmSend()
 {
@@ -32,7 +34,6 @@ void IPCShmSend::transfer()
 	
 		if (this->shm_ptr->is_read)
 		{
-			std::cout << "map" << std::endl;
 			if (total_sent_bytes < file_size)
 			{
 				this->file_handler.read_file_shm(&shm_ptr->data_ap[0], this->shm_ptr->data_size);
@@ -73,7 +74,7 @@ void IPCShmSend::map_shm()
 	this->shm_ptr = (ipc_shm_header_t *)mmap64(NULL, this->shm_size_in_bytes,
 											   PROT_READ | PROT_WRITE, MAP_SHARED,
 											   this->shmd, 0);
-	if (this->shm_ptr == MAP_FAILED)
+	if ((static_cast<void*>(this->shm_ptr)) == MAP_FAILED)
 	{
 		throw std::runtime_error("ERROR: mmap64().");
 	}
