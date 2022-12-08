@@ -2,15 +2,21 @@
 
 IPCShm::~IPCShm()
 {
-	if (this->shm_ptr == nullptr)
+	if (this->shm_ptr != nullptr)
 	{
 		munmap(this->shm_ptr, this->shm_size_in_bytes);
 	}
-
-	if (this->shmd > 0)
+	
+	if (pthread_condattr_destroy(&(this->cond_attr)) != 0)
 	{
-		close(this->shmd);
+		perror("Error at pthread_condattr_destroy()\n");
 	}
+
+	if (pthread_mutexattr_destroy(&(this->mutex_attr)) != 0)
+	{
+		throw std::runtime_error("Error at pthread_mutexattr_destroy()");
+	}
+
 }
 
 void IPCShm::init_cond()

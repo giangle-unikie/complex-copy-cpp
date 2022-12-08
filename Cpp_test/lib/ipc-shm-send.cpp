@@ -13,6 +13,10 @@ void IPCShmSend::init()
 	this->open_shm();
 	this->set_shm_size();
 	this->map_shm();
+	if (this->shmd > 0)
+	{
+		close(this->shmd);
+	}
 	this->init_mutex();
 	this->init_cond();
 }

@@ -10,6 +10,10 @@ void IPCShmReceive::init()
 	this->file_handler.open_file();
 	this->open_shm();
 	this->map_shm();
+	if (this->shmd > 0)
+	{
+		close(this->shmd);
+	}
 }
 
 void IPCShmReceive::transfer()
@@ -26,6 +30,7 @@ void IPCShmReceive::transfer()
 			i++;
 			if (i == 10)
 			{
+				pthread_mutexattr_destroy(&(this->mutex_attr));
 				throw std::runtime_error("ERROR: data version does not change.");
 			}
 
@@ -36,6 +41,7 @@ void IPCShmReceive::transfer()
 		}
 		if (this->shm_ptr->shared_mem_size != this->shm_size_in_bytes)
 		{
+			pthread_mutexattr_destroy(&(this->mutex_attr));
 			throw std::runtime_error("ERROR: Shared memory size of server and client side are not the same.");
 		}
 
