@@ -130,45 +130,49 @@ TEST(shmSendTest6, tranferFile)
     optind = 0;
     pid_t pid;
 
-    char mode1[] = {"./ipc_send"};
-    char mode2[] = {"testFile/ipc_receive"};
-    char sharedMethod[] = {"-s"};
-    char methodName[] = {"methodName"};
-    char file[] = {"-f"};
-    char receivefileName[] = {"fileName"};
-    char sendFileName[] = {"testFile/test"};
-    int argc = 5;
-    char *argv1[] = {mode1, sharedMethod, methodName, file, sendFileName};
-    char *argv2[] = {mode2, sharedMethod, methodName, file, receivefileName};
-    ipcHandler ipc;
-    ipc_info info;
-    FileHandler fileWrite(receivefileName, FileMode::WRITE);
-    FileHandler fileRead(sendFileName, FileMode::READ);
-
     pid = fork();
     if (pid == 0)
     {
+        char mode[] = {"testFile/ipc_receive"};
+        char sharedMethod[] = {"-s"};
+        char methodName[] = {"methodName"};
+        char file[] = {"-f"};
+        char receivefileName[] = {"fileName"};
+        int argc = 5;
+        char *argv[] = {mode, sharedMethod, methodName, file, receivefileName};
         // child process
+        ipcHandler ipc;
+        ipc_info info;
         std::cout << "child" << std::endl;
-        ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv2);
+        //FileHandler fileWrite(receivefileName, FileMode::WRITE);
+        ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv);
         info = ipc.get_options();
         ipc.start();
         std::cout << "end receive!" << std::endl;
+        exit(0);
     }
     else
     {
+        char mode[] = {"./ipc_send"};
+        char sharedMethod[] = {"-s"};
+        char methodName[] = {"methodName"};
+        char file[] = {"-f"};
+        char sendFileName[] = {"testFile/test"};
+        int argc = 5;
+        char *argv[] = {mode, sharedMethod, methodName, file, sendFileName};
         // parent process
+        ipcHandler ipc;
+        ipc_info info;
         std::cout << "parent" << std::endl;
-        ipc.select_options(IPCMode::SEND_MODE, argc, argv1);
+        //FileHandler fileRead(sendFileName, FileMode::READ);
+        ipc.select_options(IPCMode::SEND_MODE, argc, argv);
         info = ipc.get_options();
         ipc.start();
         std::cout << "end send!" << std::endl;
     }
 
+    std::cout << "start wait!" << std::endl;
     wait(&pid);
-
-    std::cout << "send :" << fileRead.get_file_size() << std::endl;
-    std::cout << "receive :" << fileWrite.get_file_size() << std::endl;
-
-    // EXPECT_EQ(fileSent, fileReceived);
+    std::cout << "end wait!" << std::endl;
+    EXPECT_EQ(1, 1);
 }
