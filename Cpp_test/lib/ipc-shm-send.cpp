@@ -4,7 +4,9 @@
 
 IPCShmSend::~IPCShmSend()
 {
+
 	shm_unlink(this->info.method_name);
+	
 }
 
 void IPCShmSend::init()
@@ -35,31 +37,36 @@ void IPCShmSend::transfer()
 	while (!this->is_end)
 	{
 		lock_mutex();
-	
-		if (this->shm_ptr->is_read)
+		while (this->shm_ptr->data_version_received != this->shm_ptr->data_version)
 		{
-			if (total_sent_bytes < file_size)
+
+			if (pthread_cond_wait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex)) != 0)
 			{
-				this->file_handler.read_file_shm(&shm_ptr->data_ap[0], this->shm_ptr->data_size);
-				read_bytes = this->file_handler.get_read_bytes();
-				if (read_bytes > 0)
-				{
-					this->shm_ptr->is_read = false;
-					this->shm_ptr->data_version++;
-					this->shm_ptr->data_size = read_bytes;
-					total_sent_bytes += read_bytes;
-				}
-			}
-			else
-			{
-				this->shm_ptr->is_read = false;
-				this->shm_ptr->data_size = 0;
-				this->shm_ptr->data_version++;
-				this->is_end = true;
+				throw std::runtime_error(std::string("ERROR: pthread_cond_wait() send: ") + strerror(errno));
 			}
 		}
-		unlock_mutex();
+
+		if (total_sent_bytes < file_size)
+		{
+			//memset(this->shm_ptr->data_ap,0,2048);
+			this->file_handler.read_file_shm(this->shm_ptr->data_ap, this->shm_ptr->data_size);
+			read_bytes = this->file_handler.get_read_bytes();
+
+			if (read_bytes > 0)
+			{
+				this->shm_ptr->data_version++;
+				this->shm_ptr->data_size = read_bytes;
+				total_sent_bytes += read_bytes;
+			}
+		}
+		else
+		{
+			this->shm_ptr->data_size = 0;
+			this->shm_ptr->data_version++;
+			this->is_end = true;
+		}
 		send_cond_broadcast();
+		unlock_mutex();
 	}
 
 	if (total_sent_bytes == file_size && this->is_end)
@@ -75,19 +82,24 @@ void IPCShmSend::transfer()
 void IPCShmSend::map_shm()
 {
 	errno = 0;
-	this->shm_ptr = (ipc_shm_header_t *)mmap64(NULL, this->shm_size_in_bytes,
+	this->shm_ptr = (ipc_shm_header_t *)mmap64(NULL, sizeof(ipc_shm_header_t),
 											   PROT_READ | PROT_WRITE, MAP_SHARED,
 											   this->shmd, 0);
-	if ((static_cast<void*>(this->shm_ptr)) == MAP_FAILED)
+	if ((static_cast<void *>(this->shm_ptr)) == MAP_FAILED)
 	{
 		throw std::runtime_error("ERROR: mmap64().");
 	}
-
+	this->shm_ptr->data_ap = (char *)mmap64(NULL, 2048,
+											PROT_READ | PROT_WRITE, MAP_SHARED,
+											this->shmd, 4096);
+	if ((static_cast<void *>(this->shm_ptr->data_ap)) == MAP_FAILED)
+	{
+		throw std::runtime_error("ERROR: mmap64() data_ap.");
+	}
 	// set values for new share memory
 	this->shm_ptr->is_init = true;
-	this->shm_ptr->is_read = true;
 	this->shm_ptr->shared_mem_size = this->shm_size_in_bytes;
-	this->shm_ptr->data_size = this->shm_size_in_bytes - (std::streamsize)sizeof(ipc_shm_header_t);
+	this->shm_ptr->data_size = 2048;
 }
 
 void IPCShmSend::open_shm()

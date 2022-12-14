@@ -2,21 +2,20 @@
 
 IPCShm::~IPCShm()
 {
-	if (this->shm_ptr != nullptr)
-	{
-		munmap(this->shm_ptr, this->shm_size_in_bytes);
-	}
-	
+
 	if (pthread_condattr_destroy(&(this->cond_attr)) != 0)
 	{
 		perror("Error at pthread_condattr_destroy()\n");
 	}
-
+	
 	if (pthread_mutexattr_destroy(&(this->mutex_attr)) != 0)
 	{
-		throw std::runtime_error("Error at pthread_mutexattr_destroy()");
+		perror("Error at pthread_mutexattr_destroy()\n");
 	}
-
+	if (this->shm_ptr != nullptr)
+	{
+		munmap(this->shm_ptr, this->shm_size_in_bytes);
+	}
 }
 
 void IPCShm::init_cond()
@@ -40,7 +39,12 @@ void IPCShm::init_cond()
 
 	if (pthread_cond_init(&(this->shm_ptr->cond), &(this->cond_attr)) != 0)
 	{
-		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_cond_init(): ") + strerror(errno));
+		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_cond_init() send: ") + strerror(errno));
+	}
+
+	if (pthread_cond_init(&(this->shm_ptr->cond_re), &(this->cond_attr)) != 0)
+	{
+		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_cond_init() receive: ") + strerror(errno));
 	}
 }
 
@@ -79,6 +83,14 @@ void IPCShm::lock_mutex()
 void IPCShm::send_cond_broadcast()
 {
 	if (pthread_cond_broadcast(&(this->shm_ptr->cond)) != 0)
+	{
+		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_cond_broadcast(): ") + strerror(errno));
+	}
+}
+
+void IPCShm::receive_cond_broadcast()
+{
+	if (pthread_cond_broadcast(&(this->shm_ptr->cond_re)) != 0)
 	{
 		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_cond_broadcast(): ") + strerror(errno));
 	}

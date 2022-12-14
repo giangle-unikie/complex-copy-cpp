@@ -139,6 +139,7 @@ IPCProtocol ipcHandler::start() const{
 			throw std::runtime_error("ERROR: missing/wrong arguments");
 		}
 	}
+
 	return info.protocol;
 }
 
