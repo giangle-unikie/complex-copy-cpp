@@ -57,6 +57,7 @@ void IPCShmReceive::transfer()
 	}
 
 	std::cout << "Received data size: " << total_received_bytes << " byte(s)" << std::endl;
+	pthread_mutexattr_destroy(&(this->mutex_attr));
 }
 
 void IPCShmReceive::map_shm()

@@ -48,7 +48,6 @@ void IPCShmSend::transfer()
 
 		if (total_sent_bytes < file_size)
 		{
-			//memset(this->shm_ptr->data_ap,0,2048);
 			this->file_handler.read_file_shm(this->shm_ptr->data_ap, this->shm_ptr->data_size);
 			read_bytes = this->file_handler.get_read_bytes();
 
@@ -77,11 +76,11 @@ void IPCShmSend::transfer()
 	{
 		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.");
 	}
+	pthread_mutexattr_destroy(&(this->mutex_attr));
 }
 
 void IPCShmSend::map_shm()
 {
-	errno = 0;
 	this->shm_ptr = (ipc_shm_header_t *)mmap64(NULL, sizeof(ipc_shm_header_t),
 											   PROT_READ | PROT_WRITE, MAP_SHARED,
 											   this->shmd, 0);
