@@ -20,6 +20,7 @@ struct ipc_shm_header_t
 	std::streamsize shared_mem_size;
 	volatile bool is_init {false};
 	volatile bool is_read;
+	
 	char *data_ap;
 	char *data_ap_received;
 };
@@ -32,6 +33,7 @@ class IPCShm
 		pthread_condattr_t cond_attr{};
 		ipc_shm_header_t *shm_ptr{};
 		std::streamsize shm_size_in_bytes{8192};
+		const int size_of_data{2048};
 		bool is_end{false};
 	public:
 		explicit IPCShm(){};

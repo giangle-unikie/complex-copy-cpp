@@ -17,7 +17,6 @@ cp bazel-bin/main/ipc_receive testFile
 
 echo "Running the tests"
 
-bazel test //test:argument-test
 bazel test //test:file-test
 bazel test //test:queue-receive-test
 bazel test //test:queue-send-test

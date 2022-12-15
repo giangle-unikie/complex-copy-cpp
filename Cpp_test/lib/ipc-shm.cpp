@@ -7,7 +7,7 @@ IPCShm::~IPCShm()
 	{
 		perror("Error at pthread_condattr_destroy()\n");
 	}
-	
+
 	if (pthread_mutexattr_destroy(&(this->mutex_attr)) != 0)
 	{
 		perror("Error at pthread_mutexattr_destroy()\n");
@@ -31,11 +31,6 @@ void IPCShm::init_cond()
 		throw std::runtime_error("Error at pthread_condattr_setpshared()");
 	}
 
-	/* Destory the cond attributes object */
-	if (pthread_condattr_destroy(&(this->cond_attr)) != 0)
-	{
-		perror("Error at pthread_condattr_destroy()\n");
-	}
 
 	if (pthread_cond_init(&(this->shm_ptr->cond), &(this->cond_attr)) != 0)
 	{
@@ -59,11 +54,6 @@ void IPCShm::init_mutex()
 	if (pthread_mutexattr_setpshared(&(this->mutex_attr), PTHREAD_PROCESS_SHARED) != 0)
 	{
 		throw std::runtime_error("Error at pthread_mutexattr_setpshared()");
-	}
-
-	if (pthread_mutexattr_destroy(&(this->mutex_attr)) != 0)
-	{
-		throw std::runtime_error("Error at pthread_mutexattr_destroy()");
 	}
 
 	if (pthread_mutex_init(&(this->shm_ptr->mutex), &(this->mutex_attr)) != 0)

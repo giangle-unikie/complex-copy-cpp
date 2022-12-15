@@ -76,7 +76,16 @@ void IPCShmSend::transfer()
 	{
 		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.");
 	}
-	pthread_mutexattr_destroy(&(this->mutex_attr));
+	
+	if (pthread_cond_destroy(&(this->shm_ptr->cond)) != 0)
+	{
+		perror("Error at pthread_cond_destroy()\n");
+	}
+	
+	if (pthread_mutex_destroy(&(this->shm_ptr->mutex)) != 0)
+	{
+		perror("Error at pthread_mutex_destroy()\n");
+	}
 }
 
 void IPCShmSend::map_shm()
@@ -88,7 +97,7 @@ void IPCShmSend::map_shm()
 	{
 		throw std::runtime_error("ERROR: mmap64().");
 	}
-	this->shm_ptr->data_ap = (char *)mmap64(NULL, 2048,
+	this->shm_ptr->data_ap = (char *)mmap64(NULL, this->size_of_data,
 											PROT_READ | PROT_WRITE, MAP_SHARED,
 											this->shmd, 4096);
 	if ((static_cast<void *>(this->shm_ptr->data_ap)) == MAP_FAILED)
@@ -105,7 +114,7 @@ void IPCShmSend::open_shm()
 {
 	// remove old shared memory (if any)
 	shm_unlink(this->info.method_name);
-	errno = 0;
+
 	this->shmd = shm_open(this->info.method_name, O_RDWR | O_CREAT | O_EXCL, 0660);
 	if (shmd == -1)
 	{

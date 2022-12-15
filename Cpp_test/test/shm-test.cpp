@@ -7,28 +7,22 @@
 #include "gtest/gtest.h"
 #include <sys/types.h>
 
-TEST(shmSendTest1, initFailOpen)
-{
-    optind = 0;
-    char mode[] = {"./ipc_send"};
-    char shmMethod[] = {"-s"};
-    char methodName[] = {"/methodName"};
-    char file[] = {"-f"};
-    char fileName[] = {"testFile/test"};
-    int argc = 5;
-    char *argv[] = {mode, shmMethod, methodName, file, fileName};
-    ipcHandler ipc;
-    ipc.select_options(IPCMode::SEND_MODE, argc, argv);
-    ipc_info info = ipc.get_options();
-    IPCShmSend shm(info);
-    int shm_d{0};
-
-    shm_d = shm_open(info.method_name, O_RDWR | O_CREAT | O_EXCL, 0660);
-    if (shm_d == -1)
-    {
-        EXPECT_THROW(shm.open_shm(), std::runtime_error);
-    }
-}
+// TEST(shmSendTest1, initFailOpen_InvalidMethodname)
+// {
+//     optind = 0;
+//     char mode[] = {"./ipc_send"};
+//     char shmMethod[] = {"-s"};
+//     char methodName[] = {""};
+//     char file[] = {"-f"};
+//     char fileName[] = {"testFile/test"};
+//     int argc = 5;
+//     char *argv[] = {mode, shmMethod, methodName, file, fileName};
+//     ipcHandler ipc;
+//     ipc.select_options(IPCMode::SEND_MODE, argc, argv);
+//     ipc_info info = ipc.get_options();
+//     IPCShmSend shm(info);
+//     EXPECT_THROW(shm.open_shm(), std::runtime_error);
+// }
 
 TEST(shmSendTest2, initSuccessOpen)
 {
@@ -44,14 +38,7 @@ TEST(shmSendTest2, initSuccessOpen)
     ipc.select_options(IPCMode::SEND_MODE, argc, argv);
     ipc_info info = ipc.get_options();
     IPCShmSend shm(info);
-    int shm_d{0};
-
-    shm_d = shm_open(info.method_name, O_RDWR | O_CREAT | O_EXCL, 0660);
-    if (shm_d != -1)
-    {
-        EXPECT_NO_THROW(shm.open_shm());
-        
-    }
+    EXPECT_NO_THROW(shm.open_shm());
 }
 
 TEST(shmSendTest3, start_sendMode)
@@ -84,28 +71,34 @@ TEST(shmSendTest3, start_sendMode)
 
 TEST(shmReceiveTest4, initSuccessOpen)
 {
-    optind = 0;
-    char mode[] = {"./ipc_receive"};
+
+    char mode_send[] = {"./ipc_send"};
     char shmMethod[] = {"-s"};
     char methodName[] = {"/methodName"};
     char file[] = {"-f"};
-    char fileName[] = {"filename"};
+    char fileName_send[] = {"testFile/test"};
+    char *argv_send[] = {mode_send, shmMethod, methodName, file, fileName_send};
+    char mode_recive[] = {"./ipc_receive"};
+    char fileName_receive[] = {"filename"};
     int argc = 5;
-    char *argv[] = {mode, shmMethod, methodName, file, fileName};
-    ipcHandler ipc;
-    ipc.select_options(IPCMode::SEND_MODE, argc, argv);
-    ipc_info info = ipc.get_options();
-    IPCShmReceive shm(info);
-    int shm_d{0};
 
-    shm_d = shm_open(info.method_name, O_RDWR, 0660);
-    if (shm_d != -1)
-    {
-        EXPECT_NO_THROW(shm.init());
-    }
+    optind = 0;
+    ipcHandler ipc_send;
+    ipc_send.select_options(IPCMode::SEND_MODE, argc, argv_send);
+    ipc_info info_send = ipc_send.get_options();
+    IPCShmSend shm_send(info_send);
+    EXPECT_NO_THROW(shm_send.open_shm());
+
+    optind = 0;
+    char *argv_receive[] = {mode_recive, shmMethod, methodName, file, fileName_receive};
+    ipcHandler ipc_receive;
+    ipc_receive.select_options(IPCMode::RECEIVE_MODE, argc, argv_receive);
+    ipc_info info_receive = ipc_receive.get_options();
+    IPCShmReceive shm_receive(info_receive);
+    EXPECT_NO_THROW(shm_receive.open_shm());
 }
 
-TEST(shmReceiveTest5, start_receiveMode)
+TEST(shmReceiveTest5, startReceiveFail_TimeWait10s)
 {
     optind = 0;
     char mode[] = {"./ipc_receive"};
@@ -117,16 +110,16 @@ TEST(shmReceiveTest5, start_receiveMode)
     char *argv[] = {mode, shmMethod, methodName, file, fileName};
     ipcHandler ipc;
     ipc_info info;
-
+    ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv);
+    ipc.get_options();
     if (info.mode == IPCMode::RECEIVE_MODE && info.protocol == IPCProtocol::SHARE)
     {
-        ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv);
-        ipc.get_options();
-        EXPECT_NO_THROW(ipc.start());
+        EXPECT_THROW(ipc.start(), std::runtime_error);
     }
 }
 
-TEST(shmSendTest6, tranferFile){
+TEST(shmSendTest6, tranferFile)
+{
     optind = 0;
     pid_t pid;
 
@@ -149,25 +142,21 @@ TEST(shmSendTest6, tranferFile){
     if (pid == 0)
     {
         // child process
-        std::cout <<"child" << std::endl;
+        std::cout << "child" << std::endl;
         ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv2);
         info = ipc.get_options();
         ipc.start();
-
     }
     else
     {
         // parent process
-        std::cout <<"parent" << std::endl;
+        std::cout << "parent" << std::endl;
         ipc.select_options(IPCMode::SEND_MODE, argc, argv1);
         info = ipc.get_options();
         ipc.start();
     }
 
     wait(&pid);
-
-    std::cout << "send :" << fileRead.get_file_size() << std::endl;
-    std::cout << "receive :" << fileWrite.get_file_size() << std::endl;
 
     EXPECT_EQ(fileWrite.get_file_size(), fileRead.get_file_size());
 }
