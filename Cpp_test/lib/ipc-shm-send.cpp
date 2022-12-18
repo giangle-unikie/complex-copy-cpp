@@ -4,9 +4,8 @@
 
 IPCShmSend::~IPCShmSend()
 {
-
-	shm_unlink(this->info.method_name);
 	
+	shm_unlink(this->info.method_name);
 }
 
 void IPCShmSend::init()
@@ -19,7 +18,10 @@ void IPCShmSend::init()
 	{
 		close(this->shmd);
 	}
+	pthread_mutexattr_destroy(&(this->mutex_attr));
 	this->init_mutex();
+
+	pthread_condattr_destroy(&(this->cond_attr));
 	this->init_cond();
 }
 
@@ -75,16 +77,6 @@ void IPCShmSend::transfer()
 	else
 	{
 		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.");
-	}
-	
-	if (pthread_cond_destroy(&(this->shm_ptr->cond)) != 0)
-	{
-		perror("Error at pthread_cond_destroy()\n");
-	}
-	
-	if (pthread_mutex_destroy(&(this->shm_ptr->mutex)) != 0)
-	{
-		perror("Error at pthread_mutex_destroy()\n");
 	}
 }
 

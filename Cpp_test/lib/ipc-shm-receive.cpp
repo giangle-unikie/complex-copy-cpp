@@ -2,7 +2,20 @@
 
 IPCShmReceive::~IPCShmReceive()
 {
+
 	shm_unlink(this->info.method_name);
+	if (pthread_cond_destroy(&(this->shm_ptr->cond_re)) != 0)
+	{
+		std::cerr << "Error at pthread_cond_destroy(): receive" << std::endl;
+	}
+	if (pthread_cond_destroy(&(this->shm_ptr->cond)) != 0)
+	{
+		std::cerr << "Error at pthread_cond_destroy(): send" << std::endl;
+	}
+	if (pthread_mutex_destroy(&(this->shm_ptr->mutex)) != 0)
+	{
+		std::cerr << "Error at pthread_mutex_destroy()" << std::endl;
+	}
 }
 
 void IPCShmReceive::init()
@@ -54,16 +67,6 @@ void IPCShmReceive::transfer()
 		this->shm_ptr->data_version_received = this->shm_ptr->data_version;
 		receive_cond_broadcast();
 		unlock_mutex();
-		
-		if (pthread_cond_destroy(&(this->shm_ptr->cond)) != 0)
-		{
-			perror("Error at pthread_cond_destroy()\n");
-		}
-
-		if (pthread_mutex_destroy(&(this->shm_ptr->mutex)) != 0)
-		{
-			perror("Error at pthread_mutex_destroy()\n");
-		}
 	}
 
 	std::cout << "Received data size: " << total_received_bytes << " byte(s)" << std::endl;

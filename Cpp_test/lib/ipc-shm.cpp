@@ -2,20 +2,11 @@
 
 IPCShm::~IPCShm()
 {
-
-	if (pthread_condattr_destroy(&(this->cond_attr)) != 0)
-	{
-		perror("Error at pthread_condattr_destroy()\n");
-	}
-
-	if (pthread_mutexattr_destroy(&(this->mutex_attr)) != 0)
-	{
-		perror("Error at pthread_mutexattr_destroy()\n");
-	}
 	if (this->shm_ptr != nullptr)
 	{
 		munmap(this->shm_ptr, this->shm_size_in_bytes);
 	}
+	
 }
 
 void IPCShm::init_cond()
@@ -30,7 +21,6 @@ void IPCShm::init_cond()
 	{
 		throw std::runtime_error("Error at pthread_condattr_setpshared()");
 	}
-
 
 	if (pthread_cond_init(&(this->shm_ptr->cond), &(this->cond_attr)) != 0)
 	{
