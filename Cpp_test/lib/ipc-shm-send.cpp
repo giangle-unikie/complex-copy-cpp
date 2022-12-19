@@ -4,7 +4,16 @@
 
 IPCShmSend::~IPCShmSend()
 {
-	
+
+	if (this->shm_ptr != nullptr)
+	{
+
+		int ret2 = pthread_cond_destroy(&(this->shm_ptr->cond_re));
+		if (ret2 != 0)
+		{
+			std::cerr << "Error at pthread_cond_destroy(): receive " << strerror(ret2) << std::endl;
+		}
+	}
 	shm_unlink(this->info.method_name);
 }
 
@@ -36,7 +45,7 @@ void IPCShmSend::transfer()
 
 	unsigned long long total_sent_bytes{0};
 	std::cout << "Waiting for receiver..." << std::endl;
-	while (!this->is_end)
+	while (!this->shm_ptr->is_end)
 	{
 		lock_mutex();
 		while (this->shm_ptr->data_version_received != this->shm_ptr->data_version)
@@ -44,6 +53,7 @@ void IPCShmSend::transfer()
 
 			if (pthread_cond_wait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex)) != 0)
 			{
+				unlock_mutex();
 				throw std::runtime_error(std::string("ERROR: pthread_cond_wait() send: ") + strerror(errno));
 			}
 		}
@@ -64,13 +74,13 @@ void IPCShmSend::transfer()
 		{
 			this->shm_ptr->data_size = 0;
 			this->shm_ptr->data_version++;
-			this->is_end = true;
+			this->shm_ptr->is_end = true;
 		}
 		send_cond_broadcast();
 		unlock_mutex();
 	}
 
-	if (total_sent_bytes == file_size && this->is_end)
+	if (total_sent_bytes == file_size && this->shm_ptr->is_end)
 	{
 		std::cout << "Sent: " << total_sent_bytes << " byte(s)." << std::endl;
 	}
@@ -89,9 +99,9 @@ void IPCShmSend::map_shm()
 	{
 		throw std::runtime_error("ERROR: mmap64().");
 	}
-	this->shm_ptr->data_ap = (char *)mmap64(NULL, this->size_of_data,
-											PROT_READ | PROT_WRITE, MAP_SHARED,
-											this->shmd, 4096);
+	this->shm_ptr->data_ap = static_cast<char *>(mmap64(NULL, this->size_of_data,
+														PROT_READ | PROT_WRITE, MAP_SHARED,
+														this->shmd, 4096));
 	if ((static_cast<void *>(this->shm_ptr->data_ap)) == MAP_FAILED)
 	{
 		throw std::runtime_error("ERROR: mmap64() data_ap.");

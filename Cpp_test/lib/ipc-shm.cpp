@@ -12,6 +12,7 @@ IPCShm::~IPCShm()
 void IPCShm::init_cond()
 {
 
+	pthread_condattr_destroy(&(this->cond_attr));	
 	if (pthread_condattr_init(&(this->cond_attr)) != 0)
 	{
 		throw std::runtime_error("Error at pthread_condattr_init()");
@@ -36,6 +37,7 @@ void IPCShm::init_cond()
 void IPCShm::init_mutex()
 {
 
+	pthread_mutexattr_destroy(&(this->mutex_attr));
 	if (pthread_mutexattr_init(&(this->mutex_attr)) != 0)
 	{
 		throw std::runtime_error("Error at pthread_mutexattr_init()");
