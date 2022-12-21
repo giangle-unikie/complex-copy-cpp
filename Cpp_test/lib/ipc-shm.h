@@ -1,6 +1,7 @@
 #ifndef IPC_SHM_H
 #define IPC_SHM_H
 
+#include <atomic>
 #include <iostream>
 #include <pthread.h>
 #include <unistd.h> 
@@ -20,6 +21,7 @@ struct ipc_shm_header_t
 	std::streamsize shared_mem_size;
 	volatile bool is_init {false};
 	volatile bool is_end {false};
+	std::atomic<bool> checkLockMutex{false};
 	
 	char *data_ap;
 	char *data_ap_received;

@@ -8,13 +8,25 @@ IPCShmSend::~IPCShmSend()
 	if (this->shm_ptr != nullptr)
 	{
 
-		int ret2 = pthread_cond_destroy(&(this->shm_ptr->cond_re));
-		if (ret2 != 0)
+		int ret1 = pthread_cond_destroy(&(this->shm_ptr->cond_re));
+		if (ret1 != 0)
 		{
-			std::cerr << "Error at pthread_cond_destroy(): receive " << strerror(ret2) << std::endl;
+			std::cerr << "Error at pthread_cond_destroy(): receive " << strerror(ret1) << std::endl;
+		}
+		sleep(3);
+
+		int ret4 = pthread_mutex_destroy(&(this->shm_ptr->mutex));
+		if (ret4 != 0)
+		{
+			std::cerr << "Error at pthread_mutex_destroy(): " << strerror(ret4) << std::endl;
+		}
+
+		int ret5 = pthread_mutexattr_destroy(&(this->mutex_attr));
+		if (ret5 != 0)
+		{
+			std::cerr << "Error at pthread_mutexattr_destroy(): " << strerror(ret5) << std::endl;
 		}
 	}
-	shm_unlink(this->info.method_name);
 }
 
 void IPCShmSend::init()
@@ -47,14 +59,18 @@ void IPCShmSend::transfer()
 	std::cout << "Waiting for receiver..." << std::endl;
 	while (!this->shm_ptr->is_end)
 	{
-		lock_mutex();
+		if (this->shm_ptr->checkLockMutex == true)
+		{
+			lock_mutex();
+		}
+
 		while (this->shm_ptr->data_version_received != this->shm_ptr->data_version)
 		{
 
 			if (pthread_cond_wait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex)) != 0)
 			{
 				unlock_mutex();
-				throw std::runtime_error(std::string("ERROR: pthread_cond_wait() send: ") + strerror(errno));
+				throw std::runtime_error("ERROR: pthread_cond_wait() receive.");
 			}
 		}
 
