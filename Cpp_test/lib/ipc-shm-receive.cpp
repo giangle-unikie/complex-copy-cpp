@@ -64,12 +64,23 @@ void IPCShmReceive::transfer()
 
 	while (!this->shm_ptr->is_end && this->shm_ptr->is_init)
 	{
+		std::cout << "this->shm_ptr->checkLockMutex: " << this->shm_ptr->checkLockMutex << std::endl;
 		if (this->shm_ptr->checkLockMutex == true)
 		{
 			lock_mutex();
 		}
+		else
+		{
+			throw std::runtime_error("ERROR: check lock mutex.");
+		}
+
 		while (this->shm_ptr->data_version_received == this->shm_ptr->data_version)
 		{
+			if (this->shm_ptr->checkLockMutex == false)
+			{
+				throw std::runtime_error("ERROR: check lock mutex.");
+			}
+
 			if (pthread_cond_wait(&(this->shm_ptr->cond), &(this->shm_ptr->mutex)) != 0)
 			{
 				throw std::runtime_error("ERROR: pthread_cond_wait() send.");
@@ -84,7 +95,6 @@ void IPCShmReceive::transfer()
 		if (this->shm_ptr->data_size != 0)
 		{
 			this->file_handler.write_file_shm(this->shm_ptr->data_ap_received, this->shm_ptr->data_size);
-
 			total_received_bytes += this->shm_ptr->data_size;
 			this->shm_ptr->data_version_received++;
 		}

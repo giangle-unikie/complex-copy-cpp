@@ -17,7 +17,7 @@ IPCShmSend::~IPCShmSend()
 			std::cerr << "Error at pthread_cond_destroy(): receive " << strerror(ret1) << std::endl;
 		}
 		sleep(3);
-		
+
 		int ret2 = pthread_mutex_trylock(&(this->shm_ptr->mutex));
 		if (ret2 != 0)
 		{
@@ -78,20 +78,28 @@ void IPCShmSend::transfer()
 	std::cout << "Waiting for receiver..." << std::endl;
 	while (!this->shm_ptr->is_end)
 	{
+
 		if (this->shm_ptr->checkLockMutex == true)
 		{
 			lock_mutex();
 		}
+		else
+		{
+			throw std::runtime_error("ERROR: check lock mutex.");
+		}
 
 		while (this->shm_ptr->data_version_received != this->shm_ptr->data_version)
 		{
+			if (this->shm_ptr->checkLockMutex == false)
+			{
+				throw std::runtime_error("ERROR: check lock mutex.");
+			}
 
 			if (pthread_cond_wait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex)) != 0)
 			{
 				throw std::runtime_error("ERROR: pthread_cond_wait() receive.");
 			}
 		}
-
 		if (total_sent_bytes < file_size)
 		{
 			this->file_handler.read_file_shm(this->shm_ptr->data_ap, this->shm_ptr->data_size);

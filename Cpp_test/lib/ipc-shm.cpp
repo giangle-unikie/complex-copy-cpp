@@ -51,6 +51,7 @@ void IPCShm::init_mutex()
 	{
 		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_mutex_init(): ") + strerror(errno));
 	}
+	this->shm_ptr->checkLockMutex = true;
 }
 
 void IPCShm::lock_mutex()
