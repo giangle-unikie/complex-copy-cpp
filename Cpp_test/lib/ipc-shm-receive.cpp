@@ -64,7 +64,6 @@ void IPCShmReceive::transfer()
 
 	while (!this->shm_ptr->is_end && this->shm_ptr->is_init)
 	{
-		std::cout << "this->shm_ptr->checkLockMutex: " << this->shm_ptr->checkLockMutex << std::endl;
 		if (this->shm_ptr->checkLockMutex == true)
 		{
 			lock_mutex();
