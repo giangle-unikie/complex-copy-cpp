@@ -21,7 +21,10 @@ IPCShmSend::~IPCShmSend()
 		int ret2 = pthread_mutex_trylock(&(this->shm_ptr->mutex));
 		if (ret2 != 0)
 		{
-			std::cerr << "Error at pthread_mutex_trylock(): " << strerror(ret2) << std::endl;
+			if(ret2 != EINVAL)
+			{
+				std::cerr << "Error at pthread_mutex_trylock(): " << strerror(ret2) << std::endl;
+			}
 		}
 		else
 		{
