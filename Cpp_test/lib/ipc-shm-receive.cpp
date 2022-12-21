@@ -20,17 +20,21 @@ IPCShmReceive::~IPCShmReceive()
 		{
 			std::cerr << "Error at pthread_mutex_trylock(): " << strerror(ret2) << std::endl;
 		}
-
-		int ret3 = pthread_mutex_unlock(&(this->shm_ptr->mutex));
-		if (ret3 != 0)
+		else
 		{
-			std::cerr << "Error at pthread_mutex_unlock(): " << strerror(ret3) << std::endl;
-		}
-
-		int ret4 = pthread_mutex_destroy(&(this->shm_ptr->mutex));
-		if (ret4 != 0)
-		{
-			std::cerr << "Error at pthread_mutex_destroy(): " << strerror(ret4) << std::endl;
+			int ret3 = pthread_mutex_unlock(&(this->shm_ptr->mutex));
+			if (ret3 != 0)
+			{
+				std::cerr << "Error at pthread_mutex_unlock(): " << strerror(ret3) << std::endl;
+			}
+			else
+			{
+				int ret4 = pthread_mutex_destroy(&(this->shm_ptr->mutex));
+				if (ret4 != 0)
+				{
+					std::cerr << "Error at pthread_mutex_destroy(): " << strerror(ret4) << std::endl;
+				}
+			}
 		}
 
 		int ret5 = pthread_mutexattr_destroy(&(this->mutex_attr));
@@ -60,19 +64,20 @@ void IPCShmReceive::transfer()
 
 	while (!this->shm_ptr->is_end && this->shm_ptr->is_init)
 	{
-		lock_mutex();
+		if (this->shm_ptr->checkLockMutex == true)
+		{
+			lock_mutex();
+		}
 		while (this->shm_ptr->data_version_received == this->shm_ptr->data_version)
 		{
 			if (pthread_cond_wait(&(this->shm_ptr->cond), &(this->shm_ptr->mutex)) != 0)
 			{
-				unlock_mutex();
 				throw std::runtime_error("ERROR: pthread_cond_wait() send.");
 			}
 		}
 
 		if (this->shm_ptr->shared_mem_size != this->shm_size_in_bytes)
 		{
-			unlock_mutex();
 			throw std::runtime_error("ERROR: Shared memory size of server and client side are not the same.");
 		}
 

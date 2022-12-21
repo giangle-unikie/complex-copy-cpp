@@ -7,29 +7,37 @@ IPCShmSend::~IPCShmSend()
 
 	if (this->shm_ptr != nullptr)
 	{
-
+		if (this->shm_ptr->checkLockMutex == true)
+		{
+			this->shm_ptr->checkLockMutex = false;
+		}
 		int ret1 = pthread_cond_destroy(&(this->shm_ptr->cond_re));
 		if (ret1 != 0)
 		{
 			std::cerr << "Error at pthread_cond_destroy(): receive " << strerror(ret1) << std::endl;
 		}
 		sleep(3);
+		
 		int ret2 = pthread_mutex_trylock(&(this->shm_ptr->mutex));
 		if (ret2 != 0)
 		{
 			std::cerr << "Error at pthread_mutex_trylock(): " << strerror(ret2) << std::endl;
 		}
-
-		int ret3 = pthread_mutex_unlock(&(this->shm_ptr->mutex));
-		if (ret3 != 0)
+		else
 		{
-			std::cerr << "Error at pthread_mutex_unlock(): " << strerror(ret3) << std::endl;
-		}
-
-		int ret4 = pthread_mutex_destroy(&(this->shm_ptr->mutex));
-		if (ret4 != 0)
-		{
-			std::cerr << "Error at pthread_mutex_destroy(): " << strerror(ret4) << std::endl;
+			int ret3 = pthread_mutex_unlock(&(this->shm_ptr->mutex));
+			if (ret3 != 0)
+			{
+				std::cerr << "Error at pthread_mutex_unlock(): " << strerror(ret3) << std::endl;
+			}
+			else
+			{
+				int ret4 = pthread_mutex_destroy(&(this->shm_ptr->mutex));
+				if (ret4 != 0)
+				{
+					std::cerr << "Error at pthread_mutex_destroy(): " << strerror(ret4) << std::endl;
+				}
+			}
 		}
 
 		int ret5 = pthread_mutexattr_destroy(&(this->mutex_attr));
@@ -80,7 +88,6 @@ void IPCShmSend::transfer()
 
 			if (pthread_cond_wait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex)) != 0)
 			{
-				unlock_mutex();
 				throw std::runtime_error("ERROR: pthread_cond_wait() receive.");
 			}
 		}
