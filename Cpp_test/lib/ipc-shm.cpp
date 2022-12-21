@@ -6,13 +6,12 @@ IPCShm::~IPCShm()
 	{
 		munmap(this->shm_ptr, this->shm_size_in_bytes);
 	}
-	
 }
 
 void IPCShm::init_cond()
 {
 
-	pthread_condattr_destroy(&(this->cond_attr));	
+	pthread_condattr_destroy(&(this->cond_attr));
 	if (pthread_condattr_init(&(this->cond_attr)) != 0)
 	{
 		throw std::runtime_error("Error at pthread_condattr_init()");
@@ -48,11 +47,10 @@ void IPCShm::init_mutex()
 		throw std::runtime_error("Error at pthread_mutexattr_setpshared()");
 	}
 
-	if ( pthread_mutex_init(&(this->shm_ptr->mutex), &(this->mutex_attr))!= 0)
+	if (pthread_mutex_init(&(this->shm_ptr->mutex), &(this->mutex_attr)) != 0)
 	{
 		throw std::runtime_error(static_cast<std::string>("ERROR: pthread_mutex_init(): ") + strerror(errno));
 	}
-	this->shm_ptr->checkLockMutex = true;
 }
 
 void IPCShm::lock_mutex()
