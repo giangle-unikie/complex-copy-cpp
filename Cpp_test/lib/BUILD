@@ -17,6 +17,8 @@ cc_library(
         "//lib:ipc-queue-send",
         "//lib:ipc-pipe-receive", 
         "//lib:ipc-pipe-send",
+        "//lib:ipc-shm-receive", 
+        "//lib:ipc-shm-send"
     ],
 )
 
@@ -70,5 +72,37 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//lib:ipc",
+    ],
+)
+
+cc_library(
+    name = "ipc-shm",
+    srcs = ["ipc-shm.cpp"],
+    hdrs = ["ipc-shm.h"],
+    linkopts = ["-lpthread"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "ipc-shm-send",
+    srcs = ["ipc-shm-send.cpp"],
+    hdrs = ["ipc-shm-send.h"],
+    linkopts = ["-lpthread"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lib:ipc",
+        "//lib:ipc-shm",
+    ],
+)
+
+cc_library(
+    name = "ipc-shm-receive",
+    srcs = ["ipc-shm-receive.cpp"],
+    hdrs = ["ipc-shm-receive.h"],
+    linkopts = ["-lpthread"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//lib:ipc",
+        "//lib:ipc-shm",
     ],
 )
