@@ -46,7 +46,9 @@ TEST(ArgumentTest3, noArgumentSelected) {
   char* argv[] = {mode};
   
   ipcHandler ipc;
-  EXPECT_THROW(ipc.select_options(IPCMode::RECEIVE_MODE,argc, argv), std::runtime_error);
+  ipc.select_options(IPCMode::SEND_MODE,argc, argv);
+  ipc_info info = ipc.get_options();
+  EXPECT_EQ(info.protocol, IPCProtocol::NONE);
 }
 
 TEST(ArgumentTest, missingArgument) {

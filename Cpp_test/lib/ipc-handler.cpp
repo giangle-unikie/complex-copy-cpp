@@ -14,7 +14,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 
 	if (argc > 5)
 	{
-		throw std::runtime_error("ERROR: Too much arguments, use -h for more information.\n");
+		throw std::runtime_error("ERROR: Too many arguments, use -h for more information.\n");
 	}
 
 	while ((opt = getopt(argc, argv, "hf:q:p:s:")) != -1)
