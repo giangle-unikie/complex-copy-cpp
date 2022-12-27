@@ -6,11 +6,11 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 {
 	this->info.mode = mode;
 	int opt;
-	int fflag = 0;
-	int qflag = 0;
-	int pflag = 0;
-	int sflag = 0;
-	int hflag = 0;
+	int file_flag = 0;
+	int queue_flag = 0;
+	int pipe_flag = 0;
+	int shared_flag = 0;
+	int help_flag = 0;
 
 	struct option long_options[] =
 	{	
@@ -41,7 +41,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 		{
 		case 'h':
 			info.protocol = IPCProtocol::HELP;
-			hflag = 1;
+			help_flag = 1;
 			std::cout << "<HELP>\n"
 						 "--q or --queue /<queue_name>, use queue as IPC method\n"
 						 "--p or --pipe <pipe_name>, uses pipes as IPC method\n"
@@ -52,19 +52,19 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 						 "</HELP>\n";
 			break;
 		case 'q':
-			qflag++;
+			queue_flag++;
 			info.method_name = optarg;
 			break;
 		case 'p':
-			pflag++;
+			pipe_flag++;
 			info.method_name = optarg;
 			break;
 		case 's':
-			sflag++;
+			shared_flag++;
 			info.method_name = optarg;
 			break;
 		case 'f':
-			fflag++;
+			file_flag++;
 			info.file_name = optarg;
 			break;
 		default: /* '?' */
@@ -74,13 +74,13 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 		}
 	}
 
-	if (fflag)
+	if (file_flag)
 	{
 		if (info.file_name[0] == '-')
 		{
 			throw std::runtime_error("ERROR: example file name: file_name. File name can not start by '-', use --h for more information.\n");
 		}
-		if (pflag + qflag + sflag != 1)
+		if (pipe_flag + queue_flag + shared_flag != 1)
 		{
 
 			std::cout << "name of file is used: " << info.file_name << std::endl;
@@ -89,13 +89,13 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 						 "./ipc_send --p <pipe_name> --f <file_name>\n"
 						 "./ipc_send --s <shared_name> --f <file_name>\n";
 		}
-		else if (pflag + qflag + sflag == 1)
+		else if (pipe_flag + queue_flag + shared_flag == 1)
 		{
 			if (info.method_name[0] == '-')
 			{
 				throw std::runtime_error("ERROR: example method name: pipe_name. Method name can not start by '-', use --h for more information.\n");
 			}
-			if (pflag == 1)
+			if (pipe_flag == 1)
 			{
 
 				
@@ -104,7 +104,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 					info.protocol = IPCProtocol::PIPE;
 				
 			}
-			else if (qflag == 1)
+			else if (queue_flag == 1)
 			{
 				
 					std::cout << "queue is used, queue name is " << info.method_name << std::endl;
@@ -112,7 +112,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 					info.protocol = IPCProtocol::QUEUE;
 				
 			}
-			else if (sflag == 1)
+			else if (shared_flag == 1)
 			{
 				
 					std::cout << "shared memory is used, shared name is " << info.method_name << std::endl;
@@ -122,15 +122,15 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 			}
 		}
 	}
-	else if (qflag >= 2 || pflag >= 2 || sflag >= 2)
+	else if (queue_flag >= 2 || pipe_flag >= 2 || shared_flag >= 2)
 	{
 		throw std::runtime_error("ERROR: Method must be applied 1 time, use --h for more information.\n");
 	}
-	else if (qflag + pflag + sflag >= 2)
+	else if (queue_flag + pipe_flag + shared_flag >= 2)
 	{
 		throw std::runtime_error("ERROR: Only use 1 method for each time, use --h for more information.\n");
 	}
-	else if (hflag == 0)
+	else if (help_flag == 0)
 	{
 		throw std::runtime_error("ERROR: No file given, use --h for more information.\n");
 	}
