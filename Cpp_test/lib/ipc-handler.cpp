@@ -35,7 +35,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 		throw std::runtime_error("ERROR: Wrong arguments, use --h for more information.\n");
 	}
 
-	while ((opt = getopt_long(argc, argv, "hm:p:q:s:f:", long_options, NULL)) != -1)
+	while ((opt = getopt_long(argc, argv, "hf:p:q:s:", long_options, NULL)) != -1)
 	{
 		switch (opt)
 		{
