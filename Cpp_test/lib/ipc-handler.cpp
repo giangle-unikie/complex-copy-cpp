@@ -13,14 +13,13 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 	int help_flag = 0;
 
 	struct option long_options[] =
-	{	
-		{"help", no_argument, NULL, 'h'},
-		{"queue", required_argument, NULL, 'q'},
-		{"pipe", required_argument, NULL, 'p'},
-		{"shm", required_argument, NULL, 's'},
-		{"file", required_argument, NULL, 'f'},
-		{0, 0, NULL, 0}
-	};
+		{
+			{"help", no_argument, NULL, 'h'},
+			{"queue", required_argument, NULL, 'q'},
+			{"pipe", required_argument, NULL, 'p'},
+			{"shm", required_argument, NULL, 's'},
+			{"file", required_argument, NULL, 'f'},
+			{0, 0, NULL, 0}};
 
 	if (argc > 5)
 	{
@@ -30,7 +29,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 	{
 		throw std::runtime_error("ERROR: missing arguments, use --h for more information.\n");
 	}
-	if(argc == 2 && argv[1][0] != '-')	// for case: ./ipc_send exam
+	if (argc == 2 && argv[1][0] != '-') // for case: ./ipc_send exam
 	{
 		throw std::runtime_error("ERROR: Wrong arguments, use --h for more information.\n");
 	}
@@ -88,6 +87,7 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 						 "./ipc_send --q /<queue_name> --f <file_name>\n"
 						 "./ipc_send --p <pipe_name> --f <file_name>\n"
 						 "./ipc_send --s <shared_name> --f <file_name>\n";
+			throw std::runtime_error("ERROR: missing method, use --h for more information.\n");
 		}
 		else if (pipe_flag + queue_flag + shared_flag == 1)
 		{
@@ -98,27 +98,23 @@ void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
 			if (pipe_flag == 1)
 			{
 
-				
-					std::cout << "Pipe is used, pipe name is " << info.method_name << std::endl;
-					std::cout << "File name: " << info.file_name << std::endl;
-					info.protocol = IPCProtocol::PIPE;
-				
+				std::cout << "Pipe is used, pipe name is " << info.method_name << std::endl;
+				std::cout << "File name: " << info.file_name << std::endl;
+				info.protocol = IPCProtocol::PIPE;
 			}
 			else if (queue_flag == 1)
 			{
-				
-					std::cout << "queue is used, queue name is " << info.method_name << std::endl;
-					std::cout << "File name: " << info.file_name << std::endl;
-					info.protocol = IPCProtocol::QUEUE;
-				
+
+				std::cout << "queue is used, queue name is " << info.method_name << std::endl;
+				std::cout << "File name: " << info.file_name << std::endl;
+				info.protocol = IPCProtocol::QUEUE;
 			}
 			else if (shared_flag == 1)
 			{
-				
-					std::cout << "shared memory is used, shared name is " << info.method_name << std::endl;
-					std::cout << "File name: " << info.file_name << std::endl;
-					info.protocol = IPCProtocol::SHARE;
-				
+
+				std::cout << "shared memory is used, shared name is " << info.method_name << std::endl;
+				std::cout << "File name: " << info.file_name << std::endl;
+				info.protocol = IPCProtocol::SHARE;
 			}
 		}
 	}
@@ -194,6 +190,5 @@ IPCProtocol ipcHandler::start() const
 			throw std::runtime_error("ERROR: missing/wrong arguments, use --h for more information.\n");
 		}
 	}
-
 	return info.protocol;
 }
