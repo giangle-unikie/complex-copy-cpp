@@ -2,82 +2,134 @@
 #include <ctime>
 #include <iostream>
 
-
-void ipcHandler::select_options(IPCMode mode, int argc, char *argv[]){
+void ipcHandler::select_options(IPCMode mode, int argc, char *argv[])
+{
 	this->info.mode = mode;
-  	int opt;
-	bool fflag = false;
-	bool qflag = false;
-	bool pflag = false;
-	bool sflag = false;
-  	bool hflag = false;
+	int opt;
+	int file_flag = 0;
+	int queue_flag = 0;
+	int pipe_flag = 0;
+	int shared_flag = 0;
+	int help_flag = 0;
 
+	struct option long_options[] =
+		{
+			{"help", no_argument, NULL, 'h'},
+			{"queue", required_argument, NULL, 'q'},
+			{"pipe", required_argument, NULL, 'p'},
+			{"shm", required_argument, NULL, 's'},
+			{"file", required_argument, NULL, 'f'},
+			{0, 0, NULL, 0}};
 
-	while ((opt = getopt(argc, argv, "hf:q:p:s:")) != -1) {
-		switch (opt) {
-			case 'h':
-				info.protocol = IPCProtocol::HELP;	
-        		hflag = true;
-				std::cout << "<HELP>\n"
-					"-q /<queue_name>, use queue as IPC method\n"
-					"-p <pipe_name>, uses pipes as IPC method\n"
-					"-s <shared_name> uses shared memory as IPC method\n"
-					"-f <filename>, file used to read/write data\n"
-					"</HELP>\n";
+	if (argc > 5)
+	{
+		throw std::runtime_error("ERROR: Too much arguments, use --h for more information.\n");
+	}
+	if (argc == 1)
+	{
+		throw std::runtime_error("ERROR: missing arguments, use --h for more information.\n");
+	}
+	if (argc == 2 && argv[1][0] != '-') // for case: ./ipc_send exam
+	{
+		throw std::runtime_error("ERROR: Wrong arguments, use --h for more information.\n");
+	}
+
+	while ((opt = getopt_long(argc, argv, "hf:p:q:s:", long_options, NULL)) != -1)
+	{
+		switch (opt)
+		{
+		case 'h':
+			info.protocol = IPCProtocol::HELP;
+			help_flag = 1;
+			std::cout << "<HELP>\n"
+						 "--q or --queue /<queue_name>, use queue as IPC method\n"
+						 "--p or --pipe <pipe_name>, uses pipes as IPC method\n"
+						 "--s or --shm <shared_name> uses shared memory as IPC method\n"
+						 "--f --file <filename>, file used to read/write data\n"
+						 "Method name and file name can not start by '-'.\n"
+						 "Example: ./ipc_send -q /queue_method -f file_name\n"
+						 "</HELP>\n";
 			break;
-			case 'q':
-				qflag = true; 
-				info.method_name = optarg;
-				break;
-			case 'p':
-				pflag = true;
-				info.method_name = optarg;
-				break;
-			case 's':
-				sflag = true;
-				info.method_name = optarg;
-				break;
-			case 'f':
-				fflag = true;
-				info.file_name = optarg;				
-				break;
-			default: /* '?' */
-				info.protocol = IPCProtocol::NONE;
-				throw std::runtime_error("Usage: \n"
-						"-h <--help print out containing description of all supported command-line arguments>\n");
+		case 'q':
+			queue_flag++;
+			info.method_name = optarg;
+			break;
+		case 'p':
+			pipe_flag++;
+			info.method_name = optarg;
+			break;
+		case 's':
+			shared_flag++;
+			info.method_name = optarg;
+			break;
+		case 'f':
+			file_flag++;
+			info.file_name = optarg;
+			break;
+		default: /* '?' */
+			info.protocol = IPCProtocol::NONE;
+			throw std::runtime_error("Usage: \n"
+									 "-h <--help print out containing description of all supported command-line arguments>\n");
 		}
 	}
-  if (fflag) {
-		if ( !pflag && !qflag && !sflag) {
+
+	if (file_flag)
+	{
+		if (info.file_name[0] == '-')
+		{
+			throw std::runtime_error("ERROR: example file name: file_name. File name can not start by '-', use --h for more information.\n");
+		}
+		if (pipe_flag + queue_flag + shared_flag != 1)
+		{
+
 			std::cout << "name of file is used: " << info.file_name << std::endl;
 			std::cout << "Select one IPC method!e.g \n"
-					"./ipcSend -q /<queue_name> -f <file_name>\n"
-					"./ipcSend -p <pipe_name> -f <file_name>\n"
-					"./ipcSend -s <shared_name> -f <file_name>\n";
+						 "./ipc_send --q /<queue_name> --f <file_name>\n"
+						 "./ipc_send --p <pipe_name> --f <file_name>\n"
+						 "./ipc_send --s <shared_name> --f <file_name>\n";
+			throw std::runtime_error("ERROR: missing method, use --h for more information.\n");
+		}
+		else if (pipe_flag + queue_flag + shared_flag == 1)
+		{
+			if (info.method_name[0] == '-')
+			{
+				throw std::runtime_error("ERROR: example method name: pipe_name. Method name can not start by '-', use --h for more information.\n");
+			}
+			if (pipe_flag == 1)
+			{
 
-		} else {
-			if(pflag){
-				std::cout << "Pipe is used, pipe name is "<< info.method_name << std::endl;
+				std::cout << "Pipe is used, pipe name is " << info.method_name << std::endl;
 				std::cout << "File name: " << info.file_name << std::endl;
-				info.protocol = IPCProtocol::PIPE;	
+				info.protocol = IPCProtocol::PIPE;
+			}
+			else if (queue_flag == 1)
+			{
 
-			} else if (qflag) {				
-				std::cout << "queue is used, queue name is "<< info.method_name << std::endl;
+				std::cout << "queue is used, queue name is " << info.method_name << std::endl;
 				std::cout << "File name: " << info.file_name << std::endl;
 				info.protocol = IPCProtocol::QUEUE;
-
-			} else {
-				std::cout << "shared memory is used, shared name is "<< info.method_name << std::endl;
-				std::cout << "File name: " << info.file_name << std::endl;
-        		info.protocol = IPCProtocol::SHARE;
-
 			}
-		}	
+			else if (shared_flag == 1)
+			{
 
-	}else if (!hflag && (!pflag && !qflag && !sflag && !fflag)) {
-		info.protocol = IPCProtocol::NONE;
-		throw std::runtime_error("ERROR: No file given, use -h for more information.");
-	}  	
+				std::cout << "shared memory is used, shared name is " << info.method_name << std::endl;
+				std::cout << "File name: " << info.file_name << std::endl;
+				info.protocol = IPCProtocol::SHARE;
+			}
+		}
+	}
+	else if (queue_flag >= 2 || pipe_flag >= 2 || shared_flag >= 2)
+	{
+		throw std::runtime_error("ERROR: Method must be applied 1 time, use --h for more information.\n");
+	}
+	else if (queue_flag + pipe_flag + shared_flag >= 2)
+	{
+		throw std::runtime_error("ERROR: Only use 1 method for each time, use --h for more information.\n");
+	}
+	else if (help_flag == 0)
+	{
+		throw std::runtime_error("ERROR: No file given, use --h for more information.\n");
+	}
 }
 
 const ipc_info &ipcHandler::get_options() const
@@ -85,7 +137,8 @@ const ipc_info &ipcHandler::get_options() const
 	return info;
 }
 
-IPCProtocol ipcHandler::start() const{
+IPCProtocol ipcHandler::start() const
+{
 
 	if (info.mode == IPCMode::RECEIVE_MODE)
 	{
@@ -100,17 +153,16 @@ IPCProtocol ipcHandler::start() const{
 			IPCPipeReceive pipe(this->info);
 			pipe.init();
 			pipe.transfer();
-
 		}
 		if (info.protocol == IPCProtocol::SHARE)
 		{
 			IPCShmReceive shm(this->info);
 			shm.init();
 			shm.transfer();
-
 		}
-		if (info.protocol == IPCProtocol::NONE){
-			throw std::runtime_error("ERROR: missing/wrong arguments");
+		if (info.protocol == IPCProtocol::NONE)
+		{
+			throw std::runtime_error("ERROR: missing/wrong arguments, use --h for more information.\n");
 		}
 	}
 	else if (info.mode == IPCMode::SEND_MODE)
@@ -121,25 +173,22 @@ IPCProtocol ipcHandler::start() const{
 			mq.init();
 			mq.transfer();
 		}
-		if (info.protocol == IPCProtocol::PIPE )
+		if (info.protocol == IPCProtocol::PIPE)
 		{
 			IPCPipeSend pipe(this->info);
 			pipe.init();
 			pipe.transfer();
-
 		}
 		if (info.protocol == IPCProtocol::SHARE)
 		{
 			IPCShmSend shm(this->info);
 			shm.init();
 			shm.transfer();
-
 		}
-		if (info.protocol == IPCProtocol::NONE){
-			throw std::runtime_error("ERROR: missing/wrong arguments");
+		if (info.protocol == IPCProtocol::NONE)
+		{
+			throw std::runtime_error("ERROR: missing/wrong arguments, use --h for more information.\n");
 		}
 	}
-
 	return info.protocol;
 }
-

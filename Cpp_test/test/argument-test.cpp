@@ -6,9 +6,9 @@
 
 TEST(ArgumentTes1, selectQueue) {
   char mode[] = {"./ipc_receive"};
-  char queueMethod[] = {"-q"};
+  char queueMethod[] = {"--q"};
   char methodName[] = {"/methodName"};
-  char file[] = {"-f"};
+  char file[] = {"--f"};
   char fileName[] = {"testFile/test"};
   int argc = 5;
   char* argv[] = {mode, queueMethod, methodName, file, fileName};
@@ -24,9 +24,9 @@ TEST(ArgumentTes1, selectQueue) {
 TEST(ArgumentTest2, selectPipe) {
   optind =0;
   char mode[] = {"./ipc_receive"};
-  char queueMethod[] = {"-p"};
+  char queueMethod[] = {"--p"};
   char methodName[] = {"methodName"};
-  char file[] = {"-f"};
+  char file[] = {"--f"};
   char fileName[] = {"fileName"};
   int argc = 5;
   char* argv[] = {mode, queueMethod, methodName, file, fileName};
@@ -51,9 +51,9 @@ TEST(ArgumentTest3, noArgumentSelected) {
 
 TEST(ArgumentTest, missingArgument) {
   char mode[] = {"./ipc_receive"};
-  char queueMethod[] = {"-p"};
+  char queueMethod[] = {"--p"};
   char methodName[] = {"methodName"};
-  char file[] = {"-f"};
+  char file[] = {"--f"};
  
   int argc = 4;
   char* argv[] = {mode, queueMethod, methodName, file};
