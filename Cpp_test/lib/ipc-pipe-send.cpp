@@ -18,8 +18,20 @@ void IPCPipeSend::init()
 		throw std::runtime_error(std::string("ERROR: create pipe with send name ") + this->info.method_name);
 	}
 
-	// open the pipe
-	this->pd = open(this->info.method_name, O_WRONLY);
+	int time_wait{0};
+	for (time_wait = 0; time_wait < 10; time_wait++) {
+        std::cout << time_wait << std::endl;
+
+        if ((this->pd = open(this->info.method_name, O_NONBLOCK | O_WRONLY)) != -1) {
+
+            break;
+        }
+        sleep(1);
+    }
+	if (time_wait >= 10)
+	{
+		throw std::runtime_error("ERROR: Running out of time wait of sender, 10s \n");
+	}
 	if (this->pd == -1)
 	{
 		throw std::runtime_error(std::string("ERROR: open pipe send name ") + this->info.method_name);
@@ -28,6 +40,7 @@ void IPCPipeSend::init()
 	{
 		std::cout << "[" << this->info.method_name << "] is opened." << std::endl;
 	}
+
 	this->file_handler.open_file();
 }
 
@@ -61,7 +74,7 @@ void IPCPipeSend::transfer()
 			}
 			else
 			{
-				throw std::runtime_error(std::string("ERROR: write() while send in pipe"));
+				throw std::runtime_error(std::string("ERROR: write() while send in pipe\n"));
 			}
 		}
 		else if (read_bytes == 0)

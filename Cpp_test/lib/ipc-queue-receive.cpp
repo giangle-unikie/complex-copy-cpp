@@ -12,21 +12,27 @@ void ipcQueueReceive::init()
 {
 	this->file_handler.setup_file(info.file_name, FileMode::WRITE);
 	std::cout << "Waiting for sender" << std::endl;
+	int time_wait = 0;
 	do
 	{
 		this->mqd = mq_open(this->info.method_name, O_RDONLY, 0660, &(this->attr));
-		int i = 0;
-		i++;
-		if (i == 10)
-		{
-			throw std::runtime_error("ERROR: Fail to open receive queue.");
-		}
-	} while (this->mqd == -1);
 
-	if (this->mqd == -1){
+		sleep(1);
+		time_wait++;
+
+		std::cout << time_wait << std::endl;
+	} while (this->mqd == -1 && time_wait < 10);
+
+	if (time_wait == 10)
+	{
+		throw std::runtime_error("ERROR: Fail time out receive queue.\n");
+	}
+	if (this->mqd == -1)
+	{
 		throw std::runtime_error("ERROR: Fail to open receive queue. ");
 	}
-	else{
+	else
+	{
 		std::cout << "/dev/mqueue" << this->info.method_name << " is opened." << std::endl;
 	}
 	this->file_handler.open_file();
@@ -34,16 +40,16 @@ void ipcQueueReceive::init()
 
 void ipcQueueReceive::transfer()
 {
-	struct timespec	ts;
+	struct timespec ts;
 	std::vector<char> buffer(this->attr.mq_msgsize);
 	long read_bytes{0};
 	std::cout << "Waiting for new file..." << std::endl;
 	errno = 0; // clear error number
-	
+
 	do
 	{
 		clock_gettime(CLOCK_REALTIME, &ts);
-		ts.tv_sec += 7; /* set timeout for 7 seconds */
+		ts.tv_sec += 3; /* set timeout for 3 seconds */
 		ts.tv_nsec = 0; /* Invalid */
 		errno = 0;
 
@@ -51,10 +57,12 @@ void ipcQueueReceive::transfer()
 		if (read_bytes <= 0 && errno != ETIMEDOUT)
 		{
 			throw std::runtime_error("ERROR: mq_timedreceive failed to receive file. ");
-		}else if (read_bytes > 0) {
+		}
+		else if (read_bytes > 0)
+		{
 			this->file_handler.write_file(buffer, read_bytes);
 		}
-	}while (read_bytes > 0);
-	
+	} while (read_bytes > 0);
+
 	std::cout << "Received data size: " << this->file_handler.get_file_size() << " byte(s)" << std::endl;
 }

@@ -3,6 +3,7 @@
 
 FileHandler::~FileHandler()
 {
+
 	if (fs.is_open())
 	{
 		fs.close();
