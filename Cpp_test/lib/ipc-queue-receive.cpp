@@ -13,15 +13,16 @@ void ipcQueueReceive::init()
 	this->file_handler.setup_file(info.file_name, FileMode::WRITE);
 	std::cout << "Waiting for sender" << std::endl;
 	int time_wait = 0;
-	do
-	{
-		this->mqd = mq_open(this->info.method_name, O_RDONLY, 0660, &(this->attr));
+	
+	for (time_wait = 0; time_wait < 10; time_wait++) {
+        std::cout << time_wait << std::endl;
 
-		sleep(1);
-		time_wait++;
+        if ((this->mqd = mq_open(this->info.method_name, O_RDONLY , 0660, &(this->attr))) != -1) {
 
-		std::cout << time_wait << std::endl;
-	} while (this->mqd == -1 && time_wait < 10);
+            break;
+        }
+        sleep(1);
+    }
 
 	if (time_wait == 10)
 	{
@@ -29,7 +30,7 @@ void ipcQueueReceive::init()
 	}
 	if (this->mqd == -1)
 	{
-		throw std::runtime_error("ERROR: Fail to open receive queue. ");
+		throw std::runtime_error("ERROR: Fail to open receive queue. \n");
 	}
 	else
 	{
@@ -56,7 +57,7 @@ void ipcQueueReceive::transfer()
 		read_bytes = mq_timedreceive(this->mqd, buffer.data(), this->attr.mq_msgsize, nullptr, &ts);
 		if (read_bytes <= 0 && errno != ETIMEDOUT)
 		{
-			throw std::runtime_error("ERROR: mq_timedreceive failed to receive file. ");
+			throw std::runtime_error("ERROR: mq_timedreceive failed to receive file. \n");
 		}
 		else if (read_bytes > 0)
 		{

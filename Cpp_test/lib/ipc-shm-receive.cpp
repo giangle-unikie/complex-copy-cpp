@@ -1,4 +1,6 @@
 #include "ipc-shm-receive.h"
+#include <sys/time.h>
+#include <time.h>
 
 IPCShmReceive::~IPCShmReceive()
 {
@@ -60,36 +62,47 @@ void IPCShmReceive::init()
 
 void IPCShmReceive::transfer()
 {
+	struct timespec to;
 	std::cout << "Receiving..." << std::endl;
 	unsigned long total_received_bytes{0};
 
 	while (!this->shm_ptr->is_end && this->shm_ptr->is_init)
 	{
+		memset(&to, 0, sizeof to);
+		to.tv_sec = time(0) + 10;
+		to.tv_nsec = 0;
 		if (this->shm_ptr->checkLockMutex == true)
 		{
 			lock_mutex();
 		}
 		else
 		{
-			throw std::runtime_error("ERROR: check lock mutex.");
+			throw std::runtime_error("ERROR: check lock mutex.\n");
 		}
 
 		while (this->shm_ptr->data_version_received == this->shm_ptr->data_version)
 		{
 			if (this->shm_ptr->checkLockMutex == false)
 			{
-				throw std::runtime_error("ERROR: check lock mutex.");
+				throw std::runtime_error("ERROR: check lock mutex.\n");
 			}
 
-			if (pthread_cond_wait(&(this->shm_ptr->cond), &(this->shm_ptr->mutex)) != 0)
+			int retval = pthread_cond_timedwait(&(this->shm_ptr->cond), &(this->shm_ptr->mutex), &to);
+			if ( retval != 0)
 			{
-				throw std::runtime_error("ERROR: pthread_cond_wait() send.");
+				unlock_mutex();
+				throw std::runtime_error("ERROR: pthread_cond_wait() send.\n");
+			}
+			if (retval == ETIMEDOUT)
+			{
+				unlock_mutex();
+				std::cerr << "pthread_cond_timedwait " << std::endl;
 			}
 		}
 
 		if (this->shm_ptr->shared_mem_size != this->shm_size_in_bytes)
 		{
-			throw std::runtime_error("ERROR: Shared memory size of server and client side are not the same.");
+			throw std::runtime_error("ERROR: Shared memory size of server and client side are not the same.\n");
 		}
 
 		if (this->shm_ptr->data_size != 0)
@@ -117,36 +130,37 @@ void IPCShmReceive::map_shm()
 											   this->shmd, 0);
 	if ((static_cast<void *>(this->shm_ptr)) == MAP_FAILED)
 	{
-		throw std::runtime_error("ERROR: mmap64().");
+		throw std::runtime_error("ERROR: mmap64().\n");
 	}
 	this->shm_ptr->data_ap_received = static_cast<char *>(mmap(NULL, this->size_of_data,
 															   PROT_READ | PROT_WRITE, MAP_SHARED,
 															   this->shmd, 4096));
 	if ((static_cast<void *>(this->shm_ptr->data_ap_received)) == MAP_FAILED)
 	{
-		throw std::runtime_error("ERROR: mmap64() data_ap received.");
+		throw std::runtime_error("ERROR: mmap64() data_ap received.\n");
 	}
-	this->shm_ptr->is_wait = true;
-	std::cout << this->shm_ptr->is_wait << std::endl;
+
 }
 
 void IPCShmReceive::open_shm()
 {
 	std::cout << "Waiting for sender..." << std::endl;
-	unsigned tries;
-	for (tries = 0; tries < 10;)
+	int time_wait{0};
+	for (time_wait = 0;time_wait < 10;time_wait++)
 	{
 		this->shmd = shm_open(this->info.method_name, O_RDWR, 0660);
 		if (this->shmd != -1)
 		{
 			break;
 		}
-		++tries;
 		sleep(1);
-		std::cout << tries << std::endl;
-		if (tries >= 10)
-		{
-			throw std::runtime_error("ERROR: open_shm(), wait over 10 second.\n");
-		}
+		std::cout << time_wait << std::endl;
+
+		
 	}
+	if (time_wait >= 10)
+	{
+		throw std::runtime_error("ERROR: open_shm(), wait over 10 second.\n");
+	}
+			
 }

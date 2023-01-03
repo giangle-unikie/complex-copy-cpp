@@ -19,15 +19,18 @@ void IPCPipeSend::init()
 	}
 
 	int time_wait{0};
-	for (time_wait = 0; time_wait < 10; time_wait++) {
-        std::cout << time_wait << std::endl;
+	for (time_wait = 0; time_wait < 10; time_wait++)
+	{
+		std::cout << time_wait << std::endl;
 
-        if ((this->pd = open(this->info.method_name, O_NONBLOCK | O_WRONLY)) != -1) {
+		if ((this->pd = open(this->info.method_name, O_NONBLOCK | O_WRONLY)) != -1)
+		{
 
-            break;
-        }
-        sleep(1);
-    }
+			break;
+		}
+		sleep(1);
+	}
+
 	if (time_wait >= 10)
 	{
 		throw std::runtime_error("ERROR: Running out of time wait of sender, 10s \n");
@@ -51,9 +54,10 @@ void IPCPipeSend::transfer()
 	long read_bytes{0};
 	unsigned long long total_sent_bytes{0};
 	unsigned long long file_size = this->file_handler.get_file_size();
+
 	if (file_size == 0)
 	{
-		throw std::runtime_error("ERROR: File size = 0.");
+		throw std::runtime_error("ERROR: File size = 0.\n");
 	}
 
 	std::cout << "Sending..." << std::endl;
@@ -64,7 +68,7 @@ void IPCPipeSend::transfer()
 
 		read_bytes = this->file_handler.get_read_bytes();
 
-		if (read_bytes > 0)
+		if (read_bytes > 0 && errno != EAGAIN)
 		{
 			sent_bytes = write(this->pd, buffer.data(), read_bytes);
 
@@ -76,6 +80,7 @@ void IPCPipeSend::transfer()
 			{
 				throw std::runtime_error(std::string("ERROR: write() while send in pipe\n"));
 			}
+			sleep(0.1);
 		}
 		else if (read_bytes == 0)
 		{
@@ -89,6 +94,6 @@ void IPCPipeSend::transfer()
 	}
 	else
 	{
-		throw std::runtime_error("ERROR: Uncompleted transfer");
+		throw std::runtime_error("ERROR: Uncompleted transfer\n");
 	}
 }

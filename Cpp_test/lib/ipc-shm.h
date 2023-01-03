@@ -21,7 +21,6 @@ struct ipc_shm_header_t
 	std::streamsize shared_mem_size;
 	volatile bool is_init {false};
 	volatile bool is_end {false};
-	volatile bool is_wait {false};
 	std::atomic<bool> checkLockMutex{false};
 	
 	char *data_ap;

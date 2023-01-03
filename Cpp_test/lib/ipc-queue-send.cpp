@@ -32,14 +32,14 @@ void ipcQueueSend::transfer()
 {
 	struct timespec ts;
 	std::cout << "transfer\n";
-	long mq_send_return_value{0};
-	long read_bytes{0};
+	unsigned long long mq_send_return_value{0};
+	unsigned long long read_bytes{0};
 	std::vector<char> buffer(this->attr.mq_msgsize);
 	unsigned long long total_sent_bytes{0};
 	unsigned long long file_size = this->file_handler.get_file_size();
 	if (file_size == 0)
 	{
-		throw std::runtime_error("ERROR: File size = 0.");
+		throw std::runtime_error("ERROR: File size = 0.\n");
 	}
 
 	std::cout << "Sending..." << std::endl;
@@ -47,8 +47,8 @@ void ipcQueueSend::transfer()
 	while (total_sent_bytes < file_size)
 	{
 		clock_gettime(CLOCK_REALTIME, &ts);
-		ts.tv_sec += 3; /* set timeout for 3 seconds */
-		ts.tv_nsec = 0; /* Invalid */
+		ts.tv_sec += 10; /* set timeout for 10 seconds */
+		ts.tv_nsec = 0;	 /* Invalid */
 
 		this->file_handler.read_file(buffer, this->attr.mq_msgsize);
 		read_bytes = this->file_handler.get_read_bytes();
@@ -61,10 +61,12 @@ void ipcQueueSend::transfer()
 			{
 				total_sent_bytes += read_bytes;
 			}
+
 			else
 			{
-				throw std::runtime_error(std::string("ERROR: mq_send(): "));
+				throw std::runtime_error(std::string("ERROR: mq_send(): the time out has expired 10s \n"));
 			}
+			
 		}
 	}
 
@@ -73,7 +75,7 @@ void ipcQueueSend::transfer()
 	if (total_sent_bytes == file_size)
 	{
 		std::cout << "Waiting for client to pick up..." << std::endl;
-		int time_wait{0};
+		 int time_wait{0};
 		size_t is_empty = 0;
 		do
 		{
@@ -84,7 +86,7 @@ void ipcQueueSend::transfer()
 			std::cout << time_wait << std::endl;
 			if (time_wait == 10)
 			{
-				throw std::runtime_error("ERROR: Fail time out send queue.\n");
+				throw std::runtime_error("ERROR: Fail time out send queue to pick up all message.\n");
 			}
 
 		} while (is_empty != 0);
@@ -93,6 +95,6 @@ void ipcQueueSend::transfer()
 	}
 	else
 	{
-		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.");
+		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.\n");
 	}
 }
