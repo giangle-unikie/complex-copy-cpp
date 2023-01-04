@@ -17,7 +17,7 @@ void IPCPipeSend::init()
 	{
 		throw std::runtime_error(std::string("ERROR: create pipe with send name ") + this->info.method_name);
 	}
-
+	// this->pd = open(this->info.method_name, O_WRONLY);
 	int time_wait{0};
 	for (time_wait = 0; time_wait < 10; time_wait++)
 	{
@@ -68,19 +68,33 @@ void IPCPipeSend::transfer()
 
 		read_bytes = this->file_handler.get_read_bytes();
 
-		if (read_bytes > 0 && errno != EAGAIN)
+		if (read_bytes > 0)
 		{
+
 			sent_bytes = write(this->pd, buffer.data(), read_bytes);
 
-			if (sent_bytes == read_bytes)
+			if (sent_bytes == read_bytes && sent_bytes != 0)
 			{
 				total_sent_bytes += sent_bytes;
 			}
+			else if (sent_bytes == -1 && errno == EAGAIN)
+			{
+				while (errno == EAGAIN)
+				{
+					sleep(1);
+					errno = 0;
+					sent_bytes = write(this->pd, buffer.data(), read_bytes);
+					if (sent_bytes == read_bytes)
+					{
+						total_sent_bytes += sent_bytes;
+					}
+				}
+			}
 			else
 			{
+
 				throw std::runtime_error(std::string("ERROR: write() while send in pipe\n"));
 			}
-			sleep(0.1);
 		}
 		else if (read_bytes == 0)
 		{

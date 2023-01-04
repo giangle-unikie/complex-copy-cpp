@@ -84,7 +84,7 @@ void IPCShmSend::transfer()
 	}
 
 	unsigned long long total_sent_bytes{0};
-	std::cout << "Waiting for receiver..." << std::endl;
+	std::cout << "Sending..." << std::endl;
 
 	while (!this->shm_ptr->is_end)
 	{

@@ -44,7 +44,8 @@ IPCShmReceive::~IPCShmReceive()
 		{
 			std::cerr << "Error at pthread_mutexattr_destroy(): " << strerror(ret5) << std::endl;
 		}
-		munmap(this->shm_ptr, this->shm_size_in_bytes);
+		munmap(this->shm_ptr, sizeof(ipc_shm_header_t));
+		munmap(this->shm_ptr, this->size_of_data);
 	}
 	shm_unlink(this->info.method_name);
 }
@@ -68,7 +69,7 @@ void IPCShmReceive::transfer()
 
 	while (!this->shm_ptr->is_end && this->shm_ptr->is_init)
 	{
-		memset(&to, 0, sizeof to);
+		clock_gettime(CLOCK_REALTIME, &to);
 		to.tv_sec = time(0) + 10;
 		to.tv_nsec = 0;
 		if (this->shm_ptr->checkLockMutex == true)
@@ -88,7 +89,7 @@ void IPCShmReceive::transfer()
 			}
 
 			int retval = pthread_cond_timedwait(&(this->shm_ptr->cond), &(this->shm_ptr->mutex), &to);
-			if ( retval != 0)
+			if (retval != 0)
 			{
 				unlock_mutex();
 				throw std::runtime_error("ERROR: pthread_cond_wait() send.\n");
@@ -139,14 +140,13 @@ void IPCShmReceive::map_shm()
 	{
 		throw std::runtime_error("ERROR: mmap64() data_ap received.\n");
 	}
-
 }
 
 void IPCShmReceive::open_shm()
 {
 	std::cout << "Waiting for sender..." << std::endl;
 	int time_wait{0};
-	for (time_wait = 0;time_wait < 10;time_wait++)
+	for (time_wait = 0; time_wait < 10; time_wait++)
 	{
 		this->shmd = shm_open(this->info.method_name, O_RDWR, 0660);
 		if (this->shmd != -1)
@@ -155,12 +155,9 @@ void IPCShmReceive::open_shm()
 		}
 		sleep(1);
 		std::cout << time_wait << std::endl;
-
-		
 	}
 	if (time_wait >= 10)
 	{
 		throw std::runtime_error("ERROR: open_shm(), wait over 10 second.\n");
 	}
-			
 }
