@@ -73,16 +73,15 @@ void IPCPipeSend::transfer()
 
 			sent_bytes = write(this->pd, buffer.data(), read_bytes);
 
-			if (sent_bytes == read_bytes && sent_bytes != 0)
+			if (sent_bytes == read_bytes)
 			{
 				total_sent_bytes += sent_bytes;
 			}
-			else if (sent_bytes == -1 && errno == EAGAIN)
+			else if (sent_bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
 			{
-				while (errno == EAGAIN)
+				while (sent_bytes == -1)
 				{
-					sleep(1);
-					errno = 0;
+
 					sent_bytes = write(this->pd, buffer.data(), read_bytes);
 					if (sent_bytes == read_bytes)
 					{
