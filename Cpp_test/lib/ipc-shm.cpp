@@ -2,10 +2,10 @@
 
 IPCShm::~IPCShm()
 {
-	// if (this->shm_ptr != nullptr)
-	// {
-	// 	munmap(this->shm_ptr, this->shm_size_in_bytes);
-	// }
+	if (this->shm_ptr != nullptr)
+	{
+		munmap(this->shm_ptr, sizeof(ipc_shm_header_t));
+	}
 }
 
 void IPCShm::init_cond()

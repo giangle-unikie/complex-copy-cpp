@@ -53,7 +53,12 @@ IPCShmSend::~IPCShmSend()
 				}
 			}
 		}
+		if(this->shm_ptr->is_check_send == true)
+		{
+			munmap(this->shm_ptr->data_ap, this->size_of_data);
+		}
 	}
+	shm_unlink(this->info.method_name);
 }
 
 void IPCShmSend::init()
@@ -172,6 +177,7 @@ void IPCShmSend::map_shm()
 	this->shm_ptr->is_init = true;
 	this->shm_ptr->shared_mem_size = this->shm_size_in_bytes;
 	this->shm_ptr->data_size = 2048;
+	this->shm_ptr->is_check_send =true;
 }
 
 void IPCShmSend::open_shm()

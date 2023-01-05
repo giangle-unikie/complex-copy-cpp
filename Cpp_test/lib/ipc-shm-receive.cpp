@@ -44,8 +44,10 @@ IPCShmReceive::~IPCShmReceive()
 		{
 			std::cerr << "Error at pthread_mutexattr_destroy(): " << strerror(ret5) << std::endl;
 		}
-		munmap(this->shm_ptr, sizeof(ipc_shm_header_t));
-		munmap(this->shm_ptr, this->size_of_data);
+		if (this->shm_ptr->is_check_receive == true)
+		{
+			munmap(this->shm_ptr->data_ap_received, this->size_of_data);
+		}
 	}
 	shm_unlink(this->info.method_name);
 }
@@ -140,6 +142,7 @@ void IPCShmReceive::map_shm()
 	{
 		throw std::runtime_error("ERROR: mmap64() data_ap received.\n");
 	}
+	this->shm_ptr->is_check_receive = true;
 }
 
 void IPCShmReceive::open_shm()
@@ -148,9 +151,13 @@ void IPCShmReceive::open_shm()
 	int time_wait{0};
 	for (time_wait = 0; time_wait < 10; time_wait++)
 	{
+		//std::cout << "1..." << std::endl;
 		this->shmd = shm_open(this->info.method_name, O_RDWR, 0660);
+		//std::cout << "2..." << std::endl;
 		if (this->shmd != -1)
 		{
+			//std::cout << "3..." << std::endl;
+
 			break;
 		}
 		sleep(1);
@@ -159,5 +166,9 @@ void IPCShmReceive::open_shm()
 	if (time_wait >= 10)
 	{
 		throw std::runtime_error("ERROR: open_shm(), wait over 10 second.\n");
+	}
+	if (shmd == -1)
+	{
+		throw std::runtime_error("ERROR: shm_open() receive.\n");
 	}
 }
