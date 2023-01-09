@@ -1,16 +1,19 @@
 #include "ipc-shm-send.h"
 #include <iostream>
 #include <cassert>
+#include <sys/time.h>
+#include <time.h>
 
 IPCShmSend::~IPCShmSend()
 {
-
 	if (this->shm_ptr != nullptr)
 	{
+
 		if (this->shm_ptr->checkLockMutex == true)
 		{
 			this->shm_ptr->checkLockMutex = false;
 		}
+
 		int ret1 = pthread_cond_destroy(&(this->shm_ptr->cond_re));
 		if (ret1 != 0)
 		{
@@ -21,13 +24,14 @@ IPCShmSend::~IPCShmSend()
 		int ret2 = pthread_mutex_trylock(&(this->shm_ptr->mutex));
 		if (ret2 != 0)
 		{
-			if(ret2 != EINVAL)
+			if (ret2 != EINVAL)
 			{
 				std::cerr << "Error at pthread_mutex_trylock(): " << strerror(ret2) << std::endl;
 			}
 		}
 		else
 		{
+
 			int ret3 = pthread_mutex_unlock(&(this->shm_ptr->mutex));
 			if (ret3 != 0)
 			{
@@ -35,20 +39,26 @@ IPCShmSend::~IPCShmSend()
 			}
 			else
 			{
+
 				int ret4 = pthread_mutex_destroy(&(this->shm_ptr->mutex));
 				if (ret4 != 0)
 				{
 					std::cerr << "Error at pthread_mutex_destroy(): " << strerror(ret4) << std::endl;
 				}
+
+				int ret5 = pthread_mutexattr_destroy(&(this->mutex_attr));
+				if (ret5 != 0)
+				{
+					std::cerr << "Error at pthread_mutexattr_destroy(): " << strerror(ret5) << std::endl;
+				}
 			}
 		}
-
-		int ret5 = pthread_mutexattr_destroy(&(this->mutex_attr));
-		if (ret5 != 0)
+		if(this->shm_ptr->is_check_send == true)
 		{
-			std::cerr << "Error at pthread_mutexattr_destroy(): " << strerror(ret5) << std::endl;
+			munmap(this->shm_ptr->data_ap, this->size_of_data);
 		}
 	}
+	shm_unlink(this->info.method_name);
 }
 
 void IPCShmSend::init()
@@ -70,17 +80,22 @@ void IPCShmSend::init()
 
 void IPCShmSend::transfer()
 {
+	struct timespec to;
 	long read_bytes{0};
 	unsigned long long file_size{this->file_handler.get_file_size()};
 	if (file_size == 0)
 	{
-		throw std::runtime_error("ERROR: File size = 0.");
+		throw std::runtime_error("ERROR: File size = 0.\n");
 	}
 
 	unsigned long long total_sent_bytes{0};
-	std::cout << "Waiting for receiver..." << std::endl;
+	std::cout << "Sending..." << std::endl;
+
 	while (!this->shm_ptr->is_end)
 	{
+		memset(&to, 0, sizeof to);
+		to.tv_sec = time(0) + 10;
+		to.tv_nsec = 0;
 
 		if (this->shm_ptr->checkLockMutex == true)
 		{
@@ -88,19 +103,26 @@ void IPCShmSend::transfer()
 		}
 		else
 		{
-			throw std::runtime_error("ERROR: check lock mutex.");
+			throw std::runtime_error("ERROR: check lock mutex.\n");
 		}
 
 		while (this->shm_ptr->data_version_received != this->shm_ptr->data_version)
 		{
 			if (this->shm_ptr->checkLockMutex == false)
 			{
-				throw std::runtime_error("ERROR: check lock mutex.");
+				throw std::runtime_error("ERROR: check lock mutex.\n");
 			}
 
-			if (pthread_cond_wait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex)) != 0)
+			int retval = pthread_cond_timedwait(&(this->shm_ptr->cond_re), &(this->shm_ptr->mutex), &to);
+			if (retval != 0)
 			{
-				throw std::runtime_error("ERROR: pthread_cond_wait() receive.");
+				unlock_mutex();
+				throw std::runtime_error("ERROR: pthread_cond_wait() receive, over 10s\n");
+			}
+			if (retval == ETIMEDOUT)
+			{
+				unlock_mutex();
+				std::cerr << "pthread_cond_timedwait " << std::endl;
 			}
 		}
 		if (total_sent_bytes < file_size)
@@ -131,7 +153,7 @@ void IPCShmSend::transfer()
 	}
 	else
 	{
-		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.");
+		throw std::runtime_error("ERROR: The size of Total send file is not equal to File size.\n");
 	}
 }
 
@@ -142,19 +164,20 @@ void IPCShmSend::map_shm()
 											   this->shmd, 0);
 	if ((static_cast<void *>(this->shm_ptr)) == MAP_FAILED)
 	{
-		throw std::runtime_error("ERROR: mmap64().");
+		throw std::runtime_error("ERROR: mmap64().\n");
 	}
 	this->shm_ptr->data_ap = static_cast<char *>(mmap64(NULL, this->size_of_data,
 														PROT_READ | PROT_WRITE, MAP_SHARED,
 														this->shmd, 4096));
 	if ((static_cast<void *>(this->shm_ptr->data_ap)) == MAP_FAILED)
 	{
-		throw std::runtime_error("ERROR: mmap64() data_ap.");
+		throw std::runtime_error("ERROR: mmap64() data_ap.\n");
 	}
 	// set values for new share memory
 	this->shm_ptr->is_init = true;
 	this->shm_ptr->shared_mem_size = this->shm_size_in_bytes;
 	this->shm_ptr->data_size = 2048;
+	this->shm_ptr->is_check_send =true;
 }
 
 void IPCShmSend::open_shm()
@@ -165,6 +188,6 @@ void IPCShmSend::open_shm()
 	this->shmd = shm_open(this->info.method_name, O_RDWR | O_CREAT | O_EXCL, 0660);
 	if (shmd == -1)
 	{
-		throw std::runtime_error("ERROR: shm_open() send.");
+		throw std::runtime_error("ERROR: shm_open() send.\n");
 	}
 }

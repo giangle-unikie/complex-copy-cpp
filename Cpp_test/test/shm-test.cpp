@@ -112,7 +112,6 @@ TEST(shmSendTest4, tranferFile)
     EXPECT_EQ(fileWrite.get_file_size(), fileRead.get_file_size());
 }
 
-
 TEST(shmReceiveTest5, startReceiveFail_TimeWait10s)
 {
     optind = 0;
@@ -133,4 +132,46 @@ TEST(shmReceiveTest5, startReceiveFail_TimeWait10s)
     }
 }
 
+TEST(shmSendTest6, tranferFile2)
+{
+    optind = 0;
+    pid_t pid;
 
+    char mode1[] = {"./ipc_send"};
+    char mode2[] = {"testFile/ipc_receive"};
+    char sharedMethod[] = {"-s"};
+    char methodName[] = {"methodName"};
+    char file[] = {"-f"};
+    char receivefileName[] = {"fileName"};
+    char sendFileName[] = {"testFile/test"};
+    int argc = 5;
+    char *argv1[] = {mode1, sharedMethod, methodName, file, sendFileName};
+    char *argv2[] = {mode2, sharedMethod, methodName, file, receivefileName};
+    ipcHandler ipc;
+    ipc_info info;
+    FileHandler fileWrite(receivefileName, FileMode::WRITE);
+    FileHandler fileRead(sendFileName, FileMode::READ);
+
+    pid = fork();
+    if (pid == 0)
+    {
+        // child process
+        std::cout << "parent" << std::endl;
+        ipc.select_options(IPCMode::SEND_MODE, argc, argv1);
+        info = ipc.get_options();
+        ipc.start();
+    }
+    else
+    {
+        // parent process
+
+        std::cout << "child" << std::endl;
+        ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv2);
+        info = ipc.get_options();
+        ipc.start();
+    }
+
+    wait(&pid);
+
+    EXPECT_EQ(fileWrite.get_file_size(), fileRead.get_file_size());
+}

@@ -10,12 +10,21 @@ void IPCPipeReceive::init()
 {
 	this->file_handler.setup_file(info.file_name, FileMode::WRITE);
 	std::cout << "Waiting for sender... " << std::endl;
+	int time_wait{0};
 
-	do
+	for (time_wait = 0; time_wait < 10; time_wait++) {
+        std::cout << time_wait << std::endl;
+
+        if ((this->pd = open(this->info.method_name,  O_RDONLY)) != -1) {
+
+            break;
+        }
+        sleep(1);
+    }
+	if (time_wait >= 10)
 	{
-		this->pd = open(this->info.method_name, O_RDONLY);
-		
-	} while (this->pd == -1);
+		throw std::runtime_error("ERROR: Running out of time wait of receiver, 10s \n");
+	}
 
 	std::cout << this->info.method_name << " is opened." << std::endl;
 
