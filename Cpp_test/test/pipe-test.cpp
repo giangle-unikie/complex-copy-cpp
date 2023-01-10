@@ -11,7 +11,7 @@ TEST(PipeReceiveTest1, initFailOpen)
     optind = 0;
     char mode[] = {"./ipc_receive"};
     char pipeMethod[] = {"-p"};
-    char methodName[] = {"/methodName"};
+    char methodName[] = {"methodName"};
     char file[] = {"-f"};
     char fileName[] = {"fileName"};
     int argc = 5;
@@ -80,7 +80,7 @@ TEST(PipeSendTest4, initFailOpen)
     optind = 0;
     char mode[] = {"./ipc_send"};
     char pipeMethod[] = {"-p"};
-    char methodName[] = {"/methodName"};
+    char methodName[] = {"methodName"};
     char file[] = {"-f"};
     char fileName[] = {"testFile/test"};
     int argc = 5;
@@ -175,25 +175,90 @@ TEST(pipeSendTest7, tranferFile)
     if (pid == 0)
     {
         // child process
-        std::cout <<"child" << std::endl;
+        std::cout << "child" << std::endl;
         ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv2);
         info = ipc.get_options();
         ipc.start();
-        
     }
     else
     {
         // parent process
-        std::cout <<"parent" << std::endl;
+        std::cout << "parent" << std::endl;
         ipc.select_options(IPCMode::SEND_MODE, argc, argv1);
         info = ipc.get_options();
         ipc.start();
     }
-    
-    wait(&pid);
 
+    wait(&pid);
+    fileWrite.close_file();
     std::cout << "send :" << fileRead.get_file_size() << std::endl;
     std::cout << "receive :" << fileWrite.get_file_size() << std::endl;
 
     EXPECT_EQ(fileWrite.get_file_size(), fileRead.get_file_size());
+}
+
+TEST(pipeSendTest8, tranferFile_1Sender_2Receivers)
+{
+    optind = 0;
+
+    char mode1[] = {"./ipc_send"};
+    char mode2[] = {"testFile/ipc_receive"};
+    char pipeMethod[] = {"-p"};
+    char methodName[] = {"pipe_methodName"};
+    char file[] = {"-f"};
+    char receivefileName1[] = {"fileName1"};
+    char receivefileName2[] = {"fileName2"};
+    char sendFileName[] = {"testFile/test"};
+    int argc = 5;
+    char *argv1[] = {mode1, pipeMethod, methodName, file, sendFileName};
+    char *argv2[] = {mode2, pipeMethod, methodName, file, receivefileName1};
+    char *argv3[] = {mode2, pipeMethod, methodName, file, receivefileName2};
+    ipcHandler ipc;
+    ipc_info info;
+    FileHandler fileWrite1(receivefileName1, FileMode::WRITE);
+    FileHandler fileWrite2(receivefileName2, FileMode::WRITE);
+    FileHandler fileRead(sendFileName, FileMode::READ);
+
+    pid_t child_receiver_1;
+
+    child_receiver_1 = fork();
+
+    if (child_receiver_1 == 0)
+    { // This is the child_receiver_1 process.
+        std::cout << "child 1" << std::endl;
+        ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv2);
+        info = ipc.get_options();
+        ipc.start();
+    }
+    else if (child_receiver_1 > 0)
+    {
+        pid_t child_receiver_2 = fork();
+
+        if (child_receiver_2 == 0)
+        { // This is the child_receiver_2 process.
+            std::cout << "child 2" << std::endl;
+            ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv3);
+            info = ipc.get_options();
+            ipc.start();
+        }
+        else if (child_receiver_2 > 0)
+        { // This is the father process.
+            std::cout << "parent" << std::endl;
+            ipc.select_options(IPCMode::SEND_MODE, argc, argv1);
+            info = ipc.get_options();
+            ipc.start();
+        }
+    }
+
+    std::cout << "send :" << fileRead.get_file_size() << std::endl;
+    std::cout << "receive 1 :" << fileWrite1.get_file_size() << std::endl;
+    std::cout << "receive 2:" << fileWrite2.get_file_size() << std::endl;
+    if (fileWrite1.get_file_size() == 0)
+    {
+        EXPECT_EQ(fileWrite2.get_file_size(), fileRead.get_file_size());
+    }
+    else if (fileWrite2.get_file_size() == 0)
+    {
+        EXPECT_EQ(fileWrite1.get_file_size(), fileRead.get_file_size());
+    }
 }
