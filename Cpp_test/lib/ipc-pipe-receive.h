@@ -15,7 +15,6 @@ class IPCPipeReceive : public IPC
 		int pd{0};
 		std::streamsize p_msgsize{PIPE_BUF};
 		sem_t *sem;
-		std::string name;
 		std::string sem_name;
 		
 	public:

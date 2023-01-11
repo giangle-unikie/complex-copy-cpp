@@ -16,6 +16,7 @@ void IPCPipeReceive::init()
 	this->file_handler.setup_file(info.file_name, FileMode::WRITE);
 	std::cout << "Waiting for sender... " << std::endl;
 	int time_wait{0};
+	std::string name;
 
 	for (time_wait = 0; time_wait < 10; time_wait++)
 	{
@@ -39,15 +40,14 @@ void IPCPipeReceive::init()
 	/* There might be multiple receivers. We must ensure that
 			only one receiver uses sem at a time.  */
 	// Open semaphore
-	this->name = '/';
-	this->sem_name = this->sem_name + this->name + this->info.method_name;
+	name = '/';
+	this->sem_name = name + this->info.method_name;
 
 	this->sem = sem_open(this->sem_name.c_str(), O_CREAT , 0660, 1);
 	
 	if (this->sem == SEM_FAILED)
 	{
-
-		throw std::runtime_error("ERROR: Fail to open semaphore \n");
+		throw std::runtime_error(std::string("ERROR: Fail to open semaphore: ") + strerror(errno));
 	}
 }
 
@@ -59,10 +59,10 @@ void IPCPipeReceive::transfer()
 	std::cout << "Receiving..." << std::endl;
 
 	// takes control, semaphore locked
-	int wait = sem_wait(this->sem);
-	if (wait == -1)
+	int t = sem_wait(this->sem);
+	if (t == -1)
 	{
-		throw std::runtime_error("ERROR: Fail sem_wait \n");
+		throw std::runtime_error(std::string("ERROR: Fail sem_wait: ") + strerror(errno));
 	}
 
 	while (true)
@@ -82,4 +82,5 @@ void IPCPipeReceive::transfer()
 	}
 
 	std::cout << "Received data size: " << total_received_bytes << " byte(s)." << std::endl;
+	std::cout << "File size: " << this->file_handler.get_file_size() << " byte(s)." << std::endl;
 }
