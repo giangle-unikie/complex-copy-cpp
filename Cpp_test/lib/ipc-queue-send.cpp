@@ -86,7 +86,7 @@ void ipcQueueSend::transfer()
 			std::cout << time_wait << std::endl;
 			if (time_wait == 10)
 			{
-				throw std::runtime_error("ERROR: Fail time out send queue to pick up all message.\n");
+				throw std::runtime_error("ERROR: Fail time out send queue.\n");
 			}
 
 		} while (is_empty != 0);
