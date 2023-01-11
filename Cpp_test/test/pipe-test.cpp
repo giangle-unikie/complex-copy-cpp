@@ -11,7 +11,7 @@ TEST(PipeReceiveTest1, initFailOpen)
     optind = 0;
     char mode[] = {"./ipc_receive"};
     char pipeMethod[] = {"-p"};
-    char methodName[] = {"/methodName"};
+    char methodName[] = {"methodName"};
     char file[] = {"-f"};
     char fileName[] = {"fileName"};
     int argc = 5;
@@ -80,7 +80,7 @@ TEST(PipeSendTest4, initFailOpen)
     optind = 0;
     char mode[] = {"./ipc_send"};
     char pipeMethod[] = {"-p"};
-    char methodName[] = {"/methodName"};
+    char methodName[] = {"methodName"};
     char file[] = {"-f"};
     char fileName[] = {"testFile/test"};
     int argc = 5;
@@ -175,23 +175,22 @@ TEST(pipeSendTest7, tranferFile)
     if (pid == 0)
     {
         // child process
-        std::cout <<"child" << std::endl;
+        std::cout << "child" << std::endl;
         ipc.select_options(IPCMode::RECEIVE_MODE, argc, argv2);
         info = ipc.get_options();
         ipc.start();
-        
     }
     else
     {
         // parent process
-        std::cout <<"parent" << std::endl;
+        std::cout << "parent" << std::endl;
         ipc.select_options(IPCMode::SEND_MODE, argc, argv1);
         info = ipc.get_options();
         ipc.start();
     }
-    
-    wait(&pid);
 
+    wait(&pid);
+    fileWrite.close_file();
     std::cout << "send :" << fileRead.get_file_size() << std::endl;
     std::cout << "receive :" << fileWrite.get_file_size() << std::endl;
 

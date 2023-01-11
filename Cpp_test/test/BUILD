@@ -60,3 +60,15 @@ cc_test(
           "//lib:ipc-shm-receive",
           "@com_google_googletest//:gtest_main"],
 )
+
+cc_test(
+  name = "senders-receivers",
+  srcs = ["senders-receivers.cpp"],
+  linkopts = ["-lpthread"],
+  data = ["//testFile"],
+  deps = ["//lib:file-handler",
+          "//lib:ipc-handler",
+          "//lib:ipc-pipe-send",
+          "//lib:ipc-pipe-receive",
+          "@com_google_googletest//:gtest_main"],
+)
